@@ -1,10 +1,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/meysamhadeli/Airline-Microservices)
-# Airline-Microservices
+# :airplane: Airline-Microservices
 
-Airline Microservice is a simple Airline application that has the basic business scenario for online reserving flight ticket. Airlines provide transport services for their passengers. All operations of an airline company are controlled by their airline management system.
+`Airline Microservice` is a simple Airline application that has the basic business scenario for `online reserving flight ticket`. Airlines provide transport services for their passengers. All operations of an airline company are controlled by their airline management system.
 
-# Table of Contents
+
+# :memo: Table of Contents
 
 - [The Goals of This Project](#the-goals-of-this-project)
 - [Plan](#plan)
@@ -15,20 +16,20 @@ Airline Microservice is a simple Airline application that has the basic business
 - [How to Run](#how-to-run)
   - [Docker Compose](#docker-compose)
   - [Kubernetes](#kubernetes)
-- [Support](#suport)
+- [Support](#support)
 - [Contribution](#contribution)
 
-## The Goals of This Project
+## :rocket: The Goals of This Project
 
 - The microservices base on `Domain Driven Design (DDD)` implementation.
 - Correct separation of bounded contexts for each microservice.
 - Communications between bounded contexts through asynchronous `MessageBus` and `events`.
-- Simple `CQRS` implementation and `Event Driven Architecture` with using SqlServer for `Write Side` and MongoDB and Elastic Search for `Read Side`. For syncing Read Side and Write Side I will use [EventStore Projections](https://developers.eventstore.com/server/v5/projections.html#introduction-to-projections). we could also sync our Read and Write models with passing some integration event between services for achieving eventually consistency.
+- Simple `CQRS` implementation and event driven architecture.
 - Using [Inbox Pattern](https://event-driven.io/en/outbox_inbox_patterns_and_delivery_guarantees_explained/) for guaranty message [Idempotency](https://www.enterpriseintegrationpatterns.com/patterns/messaging/IdempotentReceiver.html) for receiver microservice and [Exactly-once Delivery](https://www.cloudcomputingpatterns.org/exactly_once_delivery/) pattern and using [Outbox Pattern](https://event-driven.io/en/outbox_inbox_patterns_and_delivery_guarantees_explained/) for ensuring about any message lost and [At-Least one Delivery](https://www.cloudcomputingpatterns.org/at_least_once_delivery/) rule.
 - Using `Best Practice` and `New Technologies` and `Design Patterns`.
-- Using Docker-Compose and Kubernetes for our deployment mechanism.
+- Using Docker-Compose and Kubernetes for our deployment mechanism. 
 
-## Plan
+## :dart: Plan
 > This project is in progress, New features will be added over time.
 
 I will try to register some [Issues](https://github.com/meysamhadeli/Airline-Microservices/issues) for my `TODO` works, just to not forget and also for tracking my works in future.
@@ -37,16 +38,16 @@ High-level plan is represented in the table
 
 | Feature | Status |
 | ------- | ------ |
-| Building Blocks | Completed ✔️ |
 | API Gateway | Completed ✔️ |
 | Identity Service | Completed ✔️ |
 | Flight Service | Completed ✔️ |
 | Passenger Service | Completed ✔️ |
-| Reservation Service |  In Progress ✔️ |
+| Reservation Service |  Completed ✔️ |
+| Building Blocks |  In Progress 👷‍♂️ |
 
 
-## Technologies - Libraries
-- ✔️ **[`.NET Core 6`](https://dotnet.microsoft.com/download)** - .NET Framework and .NET Core, including ASP.NET and ASP.NET Core
+## :heart: Technologies - Libraries
+- ✔️ **[`.NET 6`](https://dotnet.microsoft.com/download)** - .NET Framework and .NET Core, including ASP.NET and ASP.NET Core
 - ✔️ **[`MVC Versioning API`](https://github.com/microsoft/aspnet-api-versioning)** - Set of libraries which add service API versioning to ASP.NET Web API, OData with ASP.NET Web API, and ASP.NET Core
 - ✔️ **[`EF Core`](https://github.com/dotnet/efcore)** - Modern object-database mapper for .NET. It supports LINQ queries, change tracking, updates, and schema migrations
 - ✔️ **[`Masstransit`](https://github.com/MassTransit/MassTransit)** - Distributed Application Framework for .NET.
@@ -62,11 +63,11 @@ High-level plan is represented in the table
 - ✔️ **[`Mapster`](https://github.com/MapsterMapper/Mapster)** - Convention-based object-object mapper in .NET.
 - ✔️ **[`Hellang.Middleware.ProblemDetails`](https://github.com/khellang/Middleware/tree/master/src/ProblemDetails)** - A middleware for handling exception in .Net Core
 - ✔️ **[`IdGen`](https://github.com/RobThree/IdGen)** - Twitter Snowflake-alike ID generator for .Net
+- ✔️ **[`Yarp`](https://github.com/microsoft/reverse-proxy)** - Reverse proxy toolkit for building fast proxy servers in .NET
+- ✔️ **[`Tye`](https://github.com/dotnet/tye)** - Developer tool that makes developing, testing, and deploying microservices and distributed applications easier
 
 
-## The Domain And Bounded Context - Service Boundary
-
-`Airline Microservices` is a simple Airline application that has the basic business scenario for online reserving flight ticket. There are four `Bounded context` or `Service` for our business:
+## :high_brightness: The Domain And Bounded Context - Service Boundary
 
 - `Identity Service`: The Identity Service is a bounded context for authenticate and authorize users through with [Identity Server](https://github.com/DuendeSoftware/IdentityServer). Also, this service is responsible for creating users and their corresponding roles and permission with using [.Net Core Identity](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity) and Jwt authentication and authorization.
 
@@ -77,7 +78,8 @@ High-level plan is represented in the table
 - `Reservation Service`: The Passenger Service is a bounded context for managing all operation related to reserve flight ticket.
 
 
-## Structure of Project
+
+## :hammer: Structure of Project
 
 I used a [mediator pattern](https://dotnetcoretutorials.com/2019/04/30/the-mediator-pattern-in-net-core-part-1-whats-a-mediator/) with using [MediatR](https://github.com/jbogard/MediatR) library in my controllers for a clean and [thin controller](https://codeopinion.com/thin-controllers-cqrs-mediatr/), also instead of using a `application service` class because after some times our controller will depends to different services and this breaks single responsibility principle. We use mediator pattern to manage the delivery of messages to handlers. One of the advantages behind the [mediator pattern](https://lostechies.com/jimmybogard/2014/09/09/tackling-cross-cutting-concerns-with-a-mediator-pipeline/) is that it allows the application code to define a pipeline of activities for requests . For example in our controllers we create a command and send it to mediator and mediator will route our command to a specific command handler in application layer.
 
@@ -102,7 +104,8 @@ With this approach, each of our vertical slices can decide for itself how to bes
 With using CQRS pattern, we cut each business functionality into some vertical slices, and inner each of this slices we have [technical folders structure](http://www.kamilgrzybek.com/design/feature-folders) specific to that feature (command, handlers, infrastructure, repository, controllers, ...). In Our CQRS pattern each command/query handler is a separate slice. This is where you can reduce coupling between layers. Each handler can be a separated code unit, even copy/pasted. Thanks to that, we can tune down the specific method to not follow general conventions (e.g. use custom SQL query or even different storage). In a traditional layered architecture, when we change the core generic mechanism in one layer, it can impact all methods.
 
 
-## How to Run
+
+## :running: How to Run
 
 ### Docker Compose
 
@@ -133,7 +136,7 @@ If you like my work, feel free to:
 
 Thanks a bunch for supporting me!
 
-## Contribution
+## :octocat: Contribution
 
 Contributions are always welcome! Please take a look at the [contribution guidelines](https://github.com/meysamhadeli/Airline-Microservices/blob/master/contributing.md) pages first.
 
