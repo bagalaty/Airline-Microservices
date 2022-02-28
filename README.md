@@ -27,7 +27,7 @@
 - Simple `CQRS` implementation and event driven architecture.
 - Using [Inbox Pattern](https://event-driven.io/en/outbox_inbox_patterns_and_delivery_guarantees_explained/) for guaranty message [Idempotency](https://www.enterpriseintegrationpatterns.com/patterns/messaging/IdempotentReceiver.html) for receiver microservice and [Exactly-once Delivery](https://www.cloudcomputingpatterns.org/exactly_once_delivery/) pattern and using [Outbox Pattern](https://event-driven.io/en/outbox_inbox_patterns_and_delivery_guarantees_explained/) for ensuring about any message lost and [At-Least one Delivery](https://www.cloudcomputingpatterns.org/at_least_once_delivery/) rule.
 - Using `Best Practice` and `New Technologies` and `Design Patterns`.
-- Using Docker-Compose and Kubernetes for our deployment mechanism. 
+- Using Docker-Compose and Kubernetes for our deployment mechanism.
 
 ## :dart: Plan
 > This project is in progress, New features will be added over time.
@@ -107,16 +107,17 @@ With using CQRS pattern, we cut each business functionality into some vertical s
 
 ## :running: How to Run
 
+### Config Certificate
+
+Runt the following commands for [Config SSL](microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-6.0) in your system
+``` bash
+dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p {password here}
+dotnet dev-certs https --trust
+```
+tip: for running this command in `powershell` use `$env:USERPROFILE` instead of `%USERPROFILE%`
+
 ### Docker Compose
 
-`Step1`
-Run infrastructer on docker with this [Infrastructure-docker-compose.yaml](./deployments/docker-compose/Infrastructure-docker-compose.yaml) file with bellow command in root of application:
-
-``` bash
-docker-compose -f ./deployments/Infrastructure-docker-compose.yaml up -d
-```
-
-`Step2`
 Run this app on docker with this [docker-compose.yaml](./deployments/docker-compose/docker-compose.yaml) file with bellow command in root of application:
 
 ``` bash

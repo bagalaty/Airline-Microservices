@@ -1,6 +1,29 @@
 version: "3.3"
 services:
 
+  rabbitmq:
+      image: rabbitmq:3-management
+      container_name: rabbitmq
+      restart: unless-stopped
+      ports:
+        - 5672:5672
+        - 15672:15672
+      networks:
+        - airline
+
+  db:
+    container_name: sqldb
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    restart: unless-stopped
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "@Aa123456"
+      ACCEPT_EULA: "Y"
+    networks:
+      - airline
+
+
   gateway:
     image: gateway
     build:
@@ -21,12 +44,11 @@ services:
       - rabbitmq
       # - mongo
     volumes:
-        - '/var/run/docker.sock:/tmp/docker.sock:ro'
         - '${USERPROFILE}\.aspnet\https:/https/'
     environment:
         - 'ASPNETCORE_URLS=https://+;http://+'
         - ASPNETCORE_HTTPS_PORT=5001
-        - ASPNETCORE_Kestrel__Certificates__Default__Password=shieldh1988
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=password
         - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     networks:
       - airline
@@ -48,12 +70,11 @@ services:
       - rabbitmq
       # - mongo
     volumes:
-        - '/var/run/docker.sock:/tmp/docker.sock:ro'
         - '${USERPROFILE}\.aspnet\https:/https/'
     environment:
         - 'ASPNETCORE_URLS=https://+;http://+'
         - ASPNETCORE_HTTPS_PORT=5003
-        - ASPNETCORE_Kestrel__Certificates__Default__Password=shieldh1988
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=password
         - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     networks:
       - airline
@@ -79,12 +100,11 @@ services:
       - rabbitmq
       # - mongo
     volumes:
-        - '/var/run/docker.sock:/tmp/docker.sock:ro'
         - '${USERPROFILE}\.aspnet\https:/https/'
     environment:
         - 'ASPNETCORE_URLS=https://+;http://+'
         - ASPNETCORE_HTTPS_PORT=5005
-        - ASPNETCORE_Kestrel__Certificates__Default__Password=shieldh1988
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=password
         - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     networks:
       - airline
@@ -110,12 +130,11 @@ services:
       - rabbitmq
       # - mongo
     volumes:
-        - '/var/run/docker.sock:/tmp/docker.sock:ro'
         - '${USERPROFILE}\.aspnet\https:/https/'
     environment:
         - 'ASPNETCORE_URLS=https://+;http://+'
         - ASPNETCORE_HTTPS_PORT=5012
-        - ASPNETCORE_Kestrel__Certificates__Default__Password=shieldh1988
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=password
         - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     networks:
       - airline
@@ -141,40 +160,15 @@ services:
       - rabbitmq
       # - mongo
     volumes:
-        - '/var/run/docker.sock:/tmp/docker.sock:ro'
         - '${USERPROFILE}\.aspnet\https:/https/'
     environment:
         - 'ASPNETCORE_URLS=https://+;http://+'
         - ASPNETCORE_HTTPS_PORT=5010
-        - ASPNETCORE_Kestrel__Certificates__Default__Password=shieldh1988
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=password
         - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     networks:
       - airline
 
-
-  rabbitmq:
-      image: rabbitmq:3-management
-      container_name: rabbitmq
-      restart: unless-stopped
-      ports:
-        - 5672:5672
-        - 15672:15672
-      networks:
-        - airline
-
-
-  db:
-    container_name: sqldb
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      SA_PASSWORD : "@Aa123456"
-      ACCEPT_EULA : "Y"
-    ports:
-      - "1433:1433"
-    volumes:
-      - db-data:/var/opt/mssql
-    networks:
-      - airline
 
 networks:
   airline:
@@ -183,3 +177,4 @@ networks:
 volumes:
   db-data:
     external: false
+
