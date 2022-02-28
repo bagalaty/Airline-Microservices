@@ -113,14 +113,14 @@ With using CQRS pattern, we cut each business functionality into some vertical s
 Run infrastructer on docker with this [Infrastructure-docker-compose.yaml](./deployments/docker-compose/Infrastructure-docker-compose.yaml) file with bellow command in root of application:
 
 ``` bash
-docker-compose -f ./deployments/Infrastructure-docker-compose.yaml up -d
+docker-compose -f ./deployments/docker-compose/Infrastructure-docker-compose.yaml up -d
 ```
 
 `Step2`
 Run this app on docker with this [docker-compose.yaml](./deployments/docker-compose/docker-compose.yaml) file with bellow command in root of application:
 
 ``` bash
-docker-compose -f ./deployments/docker-compose.yaml up -d
+docker-compose -f ./deployments/docker-compose/docker-compose.yaml up -d
 ```
 
 
