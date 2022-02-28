@@ -114,7 +114,7 @@ Runt the following commands for [Config SSL](microsoft.com/en-us/aspnet/core/sec
 dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p {password here}
 dotnet dev-certs https --trust
 ```
-tip: for running this command in `powershell` use `$env:USERPROFILE` instead of `%USERPROFILE%`
+>Note: for running this command in `powershell` use `$env:USERPROFILE` instead of `%USERPROFILE%`
 
 ### Docker Compose
 
