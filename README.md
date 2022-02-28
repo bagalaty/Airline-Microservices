@@ -121,7 +121,7 @@ tip: for running this command in `powershell` use `$env:USERPROFILE` instead of 
 Run this app on docker with this [docker-compose.yaml](./deployments/docker-compose/docker-compose.yaml) file with bellow command in root of application:
 
 ``` bash
-docker-compose -f ./deployments/docker-compose.yaml up -d
+docker-compose -f ./deployments/docker-compose/docker-compose.yaml up -d
 ```
 
 
