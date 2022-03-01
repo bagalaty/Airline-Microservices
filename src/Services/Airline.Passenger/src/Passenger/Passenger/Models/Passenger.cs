@@ -5,8 +5,7 @@ namespace Passenger.Passenger.Models;
 
 public class Passenger : BaseAggregateRoot<long>
 {
-    public static Passenger Create(string name, string passportNumber, PassengerType passengerType, int age,
-        string email, long? id = null)
+    public Passenger CompleteRegistrationPassenger(string name, string passportNumber, PassengerType passengerType, int age, long? id = null)
     {
         var passenger = new Passenger
         {
@@ -14,16 +13,16 @@ public class Passenger : BaseAggregateRoot<long>
             PassportNumber = passportNumber,
             PassengerType = passengerType,
             Age = age,
-            Email = email,
-            Id = id ?? SnowFlakIdGenerator.NewId()
+            Id = id ?? SnowFlakIdGenerator.NewId(),
+            LastModified = DateTime.Now
         };
         return passenger;
     }
 
 
-    public static Passenger Create(string name, long? id = null)
+    public static Passenger Create(string name, string passportNumber ,long? id = null)
     {
-        var passenger = new Passenger {Name = name, Id = id ?? SnowFlakIdGenerator.NewId()};
+        var passenger = new Passenger {Name = name, PassportNumber = passportNumber, Id = id ?? SnowFlakIdGenerator.NewId()};
         return passenger;
     }
 
@@ -32,5 +31,4 @@ public class Passenger : BaseAggregateRoot<long>
     public string Name { get; private set; }
     public PassengerType PassengerType { get; private set; }
     public int Age { get; private set; }
-    public string Email { get; private set; }
 }

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using BuildingBlocks.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -10,8 +11,8 @@ namespace Flight.Flight.Features.CreateFlight;
 [Route(BaseApiPath + "/flight")]
 public class CreateFlightEndpoint : BaseController
 {
+    [Authorize]
     [HttpPost]
-    // [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [SwaggerOperation(Summary = "Create new flight", Description = "Create new flight")]

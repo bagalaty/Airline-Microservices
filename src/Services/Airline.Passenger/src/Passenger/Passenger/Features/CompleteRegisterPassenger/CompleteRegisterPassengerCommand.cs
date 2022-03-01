@@ -2,6 +2,6 @@ using MediatR;
 using Passenger.Passenger.Dtos;
 using Passenger.Passenger.Models;
 
-namespace Passenger.Passenger.Features.CreatePassenger;
+namespace Passenger.Passenger.Features.CompleteRegisterPassenger;
 
-public record CreatePassengerCommand(string Name, string PassportNumber,PassengerType PassengerType, int Age, string Email): IRequest<PassengerResponseDto>;
+public record CompleteRegisterPassengerCommand(string PassportNumber, PassengerType PassengerType, int Age) : IRequest<PassengerResponseDto>;

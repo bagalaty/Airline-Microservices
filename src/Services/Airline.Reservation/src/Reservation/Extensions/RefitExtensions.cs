@@ -1,4 +1,6 @@
+using BuildingBlocks.Jwt;
 using BuildingBlocks.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using Reservation.Configuration;
@@ -15,11 +17,15 @@ public static class RefitExtensions
 
         services
             .AddRefitClient<IFlightServiceClient>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(refitOptions.FlightAddress));
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(refitOptions.FlightAddress))
+            .AddHttpMessageHandler<AuthHeaderHandler>();
+
 
         services
             .AddRefitClient<IPassengerServiceClient>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(refitOptions.PassengerAddress));
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(refitOptions.PassengerAddress))
+            .AddHttpMessageHandler<AuthHeaderHandler>();
+
 
         return services;
     }

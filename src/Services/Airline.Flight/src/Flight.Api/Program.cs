@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using BuildingBlocks.Domain;
 using BuildingBlocks.IdsGenerator;
 using BuildingBlocks.Jwt;
@@ -44,6 +45,7 @@ builder.Services.AddTransient<IMessageBroker, MessageBroker>();
 builder.Services.AddTransient<IEventProcessor, EventProcessor>();
 
 builder.Services.AddCustomMassTransit(typeof(FlightRoot).Assembly);
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 SnowFlakIdGenerator.Configure(1);
 

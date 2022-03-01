@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Flight.Data;
 using Flight.Flight.Dtos;
+using Flight.Flight.Exceptions;
 using MapsterMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -26,8 +27,8 @@ public class GetAvailableFlightsQueryHandler : IRequestHandler<GetAvailableFligh
     {
         var flight = await _flightDbContext.Flights.Where(x => !x.IsDeleted).ToListAsync(cancellationToken);
 
-        if (flight.Count > 0)
-            return new List<FlightResponseDto>();
+        if (!flight.Any())
+            throw new FlightNotFountException();
 
         return _mapper.Map<List<FlightResponseDto>>(flight);
     }

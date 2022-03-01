@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BuildingBlocks.Web
 {
-    public static class ServiceCollectionExtensions
+    public static class Extensions
     {
          public static void AddCustomVersioning(this IServiceCollection services,
             Action<ApiVersioningOptions> configurator = null)

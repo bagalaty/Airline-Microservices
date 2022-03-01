@@ -1,6 +1,8 @@
 using BuildingBlocks.Domain;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Refit;
 using Reservation.Data;
 using Reservation.Flight.Clients;
 using Reservation.Flight.Dtos;
@@ -18,6 +20,7 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
     private readonly ReservationDbContext _reservationDbContext;
     private readonly IFlightServiceClient _flightServiceClient;
     private readonly IPassengerServiceClient _passengerServiceClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
 
     public CreateReservationCommandHandler(
@@ -25,38 +28,53 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
         IMapper mapper,
         ReservationDbContext reservationDbContext,
         IFlightServiceClient flightServiceClient,
-        IPassengerServiceClient passengerServiceClient)
+        IPassengerServiceClient passengerServiceClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _eventProcessor = eventProcessor;
         _mapper = mapper;
         _reservationDbContext = reservationDbContext;
         _flightServiceClient = flightServiceClient;
         _passengerServiceClient = passengerServiceClient;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ReservationResponseDto> Handle(CreateReservationCommand command, CancellationToken cancellationToken)
     {
-        var flight = await _flightServiceClient.GetById(command.FlightId);
-        if (flight is null)
-            throw new FlightNotFoundException();
+        try
+        {
+            var flight = await _flightServiceClient.GetById(command.FlightId);
+            if (flight is null)
+                throw new FlightNotFoundException();
 
-        var passenger = await _passengerServiceClient.GetById(command.PassengerId);
-        if (passenger is null)
-            throw new PassengerNotFoundException();
+            try
+            {
+                var passenger = await _passengerServiceClient.GetById(command.PassengerId);
 
-        var emptySeat = (await _flightServiceClient.GetAvailableSeats(command.FlightId))?.First();
+                var emptySeat = (await _flightServiceClient.GetAvailableSeats(command.FlightId))?.First();
 
-        var reservationEntity = Models.Reservation.Create(new PassengerInfo(passenger.Name), new Trip(flight.FlightNumber, flight.AircraftId, flight.DepartureAirportId,
-            flight.ArriveAirportId, flight.FlightDate, flight.Price, command.Description, emptySeat?.SeatNumber));
+                var reservationEntity = Models.Reservation.Create(new PassengerInfo(passenger.Name), new Trip(flight.FlightNumber, flight.AircraftId, flight.DepartureAirportId,
+                    flight.ArriveAirportId, flight.FlightDate, flight.Price, command.Description, emptySeat?.SeatNumber));
 
-        await _flightServiceClient.ReserveSeat(new ReserveSeatRequestDto(flight.Id, emptySeat?.SeatNumber));
+                await _flightServiceClient.ReserveSeat(new ReserveSeatRequestDto(flight.Id, emptySeat?.SeatNumber));
 
-        var newReservation = await _reservationDbContext.Reservations.AddAsync(reservationEntity, cancellationToken);
+                var newReservation = await _reservationDbContext.Reservations.AddAsync(reservationEntity, cancellationToken);
 
-        await _eventProcessor.ProcessAsync(newReservation.Entity.Events, cancellationToken);
+                await _eventProcessor.ProcessAsync(newReservation.Entity.Events, cancellationToken);
 
-        await _reservationDbContext.SaveChangesAsync(cancellationToken);
+                await _reservationDbContext.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<ReservationResponseDto>(newReservation.Entity);
+                return _mapper.Map<ReservationResponseDto>(newReservation.Entity);
+            }
+            catch (ValidationApiException ex)
+            {
+                // todo: fix to better approach in the next
+                throw new Exception(ex.Content.Detail);
+            }
+        }
+        catch (ValidationApiException ex)
+        {
+            throw new Exception(ex.Content.Detail);
+        }
     }
 }

@@ -21,6 +21,7 @@ Console.WriteLine(FiggleFonts.Standard.Render(configuration["app"]));
 
 builder.Services.AddJwt();
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddCustomSwagger(builder.Configuration, typeof(ReservationRoot).Assembly);
 builder.Services.AddCustomVersioning();
 builder.Services.AddCustomMediatR();
@@ -39,6 +40,7 @@ builder.Services.AddTransient<IMessageBroker, MessageBroker>();
 builder.Services.AddTransient<IEventProcessor, EventProcessor>();
 
 builder.Services.AddCustomMassTransit(typeof(ReservationRoot).Assembly);
+builder.Services.AddTransient<AuthHeaderHandler>();
 
 SnowFlakIdGenerator.Configure(3);
 

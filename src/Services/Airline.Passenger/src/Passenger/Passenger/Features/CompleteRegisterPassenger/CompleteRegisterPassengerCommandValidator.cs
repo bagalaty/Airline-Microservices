@@ -1,18 +1,16 @@
 using FluentValidation;
 using Passenger.Passenger.Models;
 
-namespace Passenger.Passenger.Features.CreatePassenger;
+namespace Passenger.Passenger.Features.CompleteRegisterPassenger;
 
-public class CreatePassengerCommandValidator : AbstractValidator<CreatePassengerCommand>
+public class CompleteRegisterPassengerCommandValidator : AbstractValidator<CompleteRegisterPassengerCommand>
 {
-    public CreatePassengerCommandValidator()
+    public CompleteRegisterPassengerCommandValidator()
     {
         CascadeMode = CascadeMode.Stop;
 
-        RuleFor(x => x.Email).EmailAddress().WithMessage("The Email format is incorrect!");
         RuleFor(x => x.PassportNumber).NotNull().WithMessage("The PassportNumber is required!");
         RuleFor(x => x.Age).GreaterThan(0).WithMessage("The Age must be greater than 0!");
-        RuleFor(x => x.Name).NotNull().WithMessage("The Name is required!");
         RuleFor(x => x.PassengerType).Must(p => p.GetType().IsEnum &&
                                                 p == PassengerType.Baby ||
                                                 p == PassengerType.Female ||

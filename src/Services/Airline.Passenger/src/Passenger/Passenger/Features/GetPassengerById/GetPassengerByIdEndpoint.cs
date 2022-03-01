@@ -9,14 +9,14 @@ namespace Passenger.Passenger.Features.GetPassengerById;
 [Route(BaseApiPath + "/passenger")]
 public class GetPassengerByIdEndpoint : BaseController
 {
-    [HttpGet("{Id}")]
-    // [Authorize]
+    [HttpGet("{id}")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [SwaggerOperation(Summary = "Get passenger by id", Description = "Get passenger by id")]
-    public async Task<ActionResult> GetById([FromRoute] GetPassengerQueryById command, CancellationToken cancellationToken)
+    public async Task<ActionResult> GetById([FromRoute] GetPassengerQueryById query, CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(command, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
 
         return Ok(result);
     }

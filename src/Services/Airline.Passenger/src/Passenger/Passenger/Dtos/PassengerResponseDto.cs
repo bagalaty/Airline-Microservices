@@ -9,5 +9,4 @@ public record PassengerResponseDto
     public string PassportNumber { get; init; }
     public PassengerType PassengerType { get; init; }
     public int Age { get; init; }
-    public string Email { get; init; }
 }

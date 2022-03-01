@@ -30,7 +30,9 @@ public class RegisterNewUserCommandHandler : IRequestHandler<RegisterNewUserComm
             FirstName = command.FirstName,
             LastName = command.LastName,
             UserName = command.Username,
-            Email = command.Email
+            Email = command.Email,
+            PasswordHash = command.Password,
+            PassPortNumber = command.PassportNumber
         };
 
         var identityResult = await _userManager.CreateAsync(applicationUser, command.Password);
@@ -42,14 +44,15 @@ public class RegisterNewUserCommandHandler : IRequestHandler<RegisterNewUserComm
         if (roleResult.Succeeded == false)
             throw new RegisterIdentityUserException(string.Join(',', roleResult.Errors.Select(e => e.Description)));
 
-        await _messageBroker.PublishAsync(new UserCreated(applicationUser.Id, applicationUser.FirstName + " " + applicationUser.LastName), cancellationToken);
-        
+        await _messageBroker.PublishAsync(new UserCreated(applicationUser.Id, applicationUser.FirstName + " " + applicationUser.LastName, applicationUser.PassPortNumber), cancellationToken);
+
         return new RegisterNewUserResponseDto
         {
             Id = applicationUser.Id,
             FirstName = applicationUser.FirstName,
             LastName = applicationUser.LastName,
-            Username = applicationUser.UserName
+            Username = applicationUser.UserName,
+            PassportNumber = applicationUser.PassPortNumber
         };
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
@@ -10,6 +11,7 @@ namespace BuildingBlocks.Swagger
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
+
             var apiDescription = context.ApiDescription;
 
             operation.Deprecated |= apiDescription.IsDeprecated();
@@ -45,6 +47,8 @@ namespace BuildingBlocks.Swagger
                 {
                     parameter.Description = description.ModelMetadata?.Description;
                 }
+
+                parameter.Name = description.Name.Camelize();
 
                 if (parameter.Schema.Default == null && description.DefaultValue != null)
                 {

@@ -2,9 +2,9 @@ using BuildingBlocks.Exception;
 
 namespace Passenger.Passenger.Exceptions;
 
-public class PassengerAlreadyExist: ConflictException
+public class PassengerNotExist : BadRequestException
 {
-    public PassengerAlreadyExist(string code = default) : base("Passenger already exist!", code)
+    public PassengerNotExist(string code = default) : base("Please register before!")
     {
     }
 }

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Flight.Data;
 using Flight.Seat.Dtos;
+using Flight.Seat.Exceptions;
 using MapsterMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ public class GetAvailableSeatsQueryHandler : IRequestHandler<GetAvailableSeatsQu
         var seats = await _flightDbContext.Seats.Where(x => x.FlightId == query.FlightId && !x.IsDeleted).ToListAsync(cancellationToken);
 
         if (!seats.Any())
-            return new List<SeatResponseDto>();
+            throw new AllSeatsFullException();
 
         return _mapper.Map<List<SeatResponseDto>>(seats);
     }

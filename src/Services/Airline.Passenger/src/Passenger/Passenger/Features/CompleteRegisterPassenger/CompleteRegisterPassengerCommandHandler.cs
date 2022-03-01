@@ -6,39 +6,38 @@ using Passenger.Data;
 using Passenger.Passenger.Dtos;
 using Passenger.Passenger.Exceptions;
 
-namespace Passenger.Passenger.Features.CreatePassenger;
+namespace Passenger.Passenger.Features.CompleteRegisterPassenger;
 
-public class CreatePassengerCommandHandler : IRequestHandler<CreatePassengerCommand, PassengerResponseDto>
+public class CompleteRegisterPassengerCommandHandler : IRequestHandler<CompleteRegisterPassengerCommand, PassengerResponseDto>
 {
     private readonly IEventProcessor _eventProcessor;
     private readonly IMapper _mapper;
     private readonly PassengerDbContext _passengerDbContext;
 
-    public CreatePassengerCommandHandler(IEventProcessor eventProcessor, IMapper mapper,
-        PassengerDbContext passengerDbContext)
+    public CompleteRegisterPassengerCommandHandler(IEventProcessor eventProcessor, IMapper mapper, PassengerDbContext passengerDbContext)
     {
         _eventProcessor = eventProcessor;
         _mapper = mapper;
         _passengerDbContext = passengerDbContext;
     }
 
-    public async Task<PassengerResponseDto> Handle(CreatePassengerCommand command, CancellationToken cancellationToken)
+    public async Task<PassengerResponseDto> Handle(CompleteRegisterPassengerCommand command, CancellationToken cancellationToken)
     {
-        var passenger = await _passengerDbContext.Passengers.SingleOrDefaultAsync(
+        var passenger = await _passengerDbContext.Passengers.AsNoTracking().SingleOrDefaultAsync(
             x => x.PassportNumber == command.PassportNumber,
             cancellationToken);
 
         if (passenger is null)
             throw new PassengerNotExist();
 
-        var passengerEntity = Models.Passenger.Create(command.Name, command.PassportNumber, command.PassengerType, command.Age, command.Email);
+        var passengerEntity = passenger.CompleteRegistrationPassenger(passenger.Name, passenger.PassportNumber, command.PassengerType, command.Age, passenger.Id);
 
-        var newPassenger = await _passengerDbContext.Passengers.AddAsync(passengerEntity, cancellationToken);
+        var updatePassenger = _passengerDbContext.Passengers.Update(passengerEntity);
 
-        await _eventProcessor.ProcessAsync(newPassenger.Entity.Events, cancellationToken);
+        await _eventProcessor.ProcessAsync(updatePassenger.Entity.Events, cancellationToken);
 
         await _passengerDbContext.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<PassengerResponseDto>(newPassenger.Entity);
+        return _mapper.Map<PassengerResponseDto>(updatePassenger.Entity);
     }
 }

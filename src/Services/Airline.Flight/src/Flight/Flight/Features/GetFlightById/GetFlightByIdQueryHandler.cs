@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Flight.Data;
 using Flight.Flight.Dtos;
+using Flight.Flight.Exceptions;
 using MapsterMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ public class GetFlightByIdQueryHandler : IRequestHandler<GetFlightByIdQuery, Fli
             await _flightDbContext.Flights.SingleOrDefaultAsync(x => x.Id == query.Id && !x.IsDeleted, cancellationToken);
 
         if (flight is null)
-            return new FlightResponseDto();
+            throw new FlightNotFountException();
 
         return _mapper.Map<FlightResponseDto>(flight);
     }

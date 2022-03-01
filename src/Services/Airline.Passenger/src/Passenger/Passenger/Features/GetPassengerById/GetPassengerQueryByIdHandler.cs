@@ -1,9 +1,11 @@
 using BuildingBlocks.Domain;
+using BuildingBlocks.Exception;
 using MapsterMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Passenger.Data;
 using Passenger.Passenger.Dtos;
+using Passenger.Passenger.Exceptions;
 
 namespace Passenger.Passenger.Features.GetPassengerById;
 
@@ -12,7 +14,7 @@ public class GetPassengerQueryByIdHandler : IRequestHandler<GetPassengerQueryByI
     private readonly PassengerDbContext _passengerDbContext;
     private readonly IMapper _mapper;
 
-    public GetPassengerQueryByIdHandler(IEventProcessor eventProcessor, IMapper mapper, PassengerDbContext passengerDbContext)
+    public GetPassengerQueryByIdHandler(IMapper mapper, PassengerDbContext passengerDbContext)
     {
         _mapper = mapper;
         _passengerDbContext = passengerDbContext;
@@ -24,8 +26,8 @@ public class GetPassengerQueryByIdHandler : IRequestHandler<GetPassengerQueryByI
             await _passengerDbContext.Passengers.SingleOrDefaultAsync(x => x.Id == query.Id, cancellationToken);
 
         if (passenger is null)
-            return new PassengerResponseDto();
+            throw new PassengerNotFoundException();
 
-        return _mapper.Map<PassengerResponseDto>(passenger);
+        return _mapper.Map<PassengerResponseDto>(passenger!);
     }
 }

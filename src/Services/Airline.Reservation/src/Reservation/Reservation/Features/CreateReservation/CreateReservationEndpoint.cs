@@ -10,7 +10,7 @@ namespace Reservation.Reservation.Features.CreateReservation;
 public class CreateReservationEndpoint : BaseController
 {
     [HttpPost]
-    // [Authorize]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [SwaggerOperation(Summary = "Create new Reservation", Description = "Create new Reservation")]

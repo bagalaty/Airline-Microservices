@@ -11,9 +11,9 @@ public static class Extensions
 {
     static bool? _isRunningInContainer;
 
-    private static bool IsRunningInContainer => _isRunningInContainer ??= 
+    private static bool IsRunningInContainer => _isRunningInContainer ??=
         bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) && inContainer;
-    
+
     public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, Assembly assembly)
     {
         services.AddMassTransit(configure =>
@@ -24,7 +24,7 @@ public static class Extensions
             {
                 var rabbitMqOptions = services.GetOptions<RabbitMqOptions>("RabbitMq");
                 var host = IsRunningInContainer ? "rabbitmq" : rabbitMqOptions.HostName;
-                
+
                     configurator.Host(host, h =>
                 {
                     h.Username(rabbitMqOptions.UserName);
@@ -63,9 +63,9 @@ public static class Extensions
                             });
                 }
             });
-            
+
         });
-        
+
         return services;
     }
 }
