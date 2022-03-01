@@ -129,6 +129,11 @@ docker-compose -f ./deployments/docker-compose/docker-compose.yaml up -d
 
 #ToDo
 
+### Documention Apis
+
+For testing apis I used [REST Client](https://github.com/Huachao/vscode-restclient) plugin of VSCode and this file [airline.rest](./airline.rest) is in root of project.
+Also after running api you have access to swagger open api for all microservices in /swagger route path.
+
 # Support ⭐
 If you like my work, feel free to:
 
