@@ -24,12 +24,12 @@ public class CreatePassengerCommandHandler : IRequestHandler<CreatePassengerComm
 
     public async Task<PassengerResponseDto> Handle(CreatePassengerCommand command, CancellationToken cancellationToken)
     {
-        var flight = await _passengerDbContext.Passengers.SingleOrDefaultAsync(
+        var passenger = await _passengerDbContext.Passengers.SingleOrDefaultAsync(
             x => x.PassportNumber == command.PassportNumber,
             cancellationToken);
 
-        if (flight is not null)
-            throw new PassengerAlreadyExist();
+        if (passenger is null)
+            throw new PassengerNotExist();
 
         var passengerEntity = Models.Passenger.Create(command.Name, command.PassportNumber, command.PassengerType, command.Age, command.Email);
 
