@@ -12,6 +12,7 @@
         <PackageReference Include="Ben.BlockingDetector" Version="0.0.4" />
         <PackageReference Include="EasyCaching.Core" Version="1.4.1" />
         <PackageReference Include="EasyCaching.InMemory" Version="1.4.1" />
+        <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
         <PackageReference Include="Figgle" Version="0.4.0" />
         <PackageReference Include="FluentValidation" Version="10.3.6" />
         <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.6" />

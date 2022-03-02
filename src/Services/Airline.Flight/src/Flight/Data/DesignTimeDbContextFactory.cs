@@ -11,7 +11,7 @@ namespace Flight.Data
 
             builder.UseSqlServer(
                 "Data Source=.\\sqlexpress;Initial Catalog=FlightDB;Persist Security Info=False;Integrated Security=SSPI");
-            return new FlightDbContext(builder.Options);
+            return new FlightDbContext(builder.Options, null);
         }
     }
 }

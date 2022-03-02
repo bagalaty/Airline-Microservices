@@ -1,11 +1,13 @@
 using System.Reflection;
+using BuildingBlocks.EFCore;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Flight.Data
 {
-    public sealed class FlightDbContext : DbContext
+    public sealed class FlightDbContext : AppDbContextBase
     {
-        public FlightDbContext(DbContextOptions options) : base(options)
+        public FlightDbContext(DbContextOptions<FlightDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options, httpContextAccessor)
         {
         }
 

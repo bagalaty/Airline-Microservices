@@ -5,6 +5,8 @@ using BuildingBlocks.IdsGenerator;
 using BuildingBlocks.Jwt;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
+using BuildingBlocks.Outbox;
+using BuildingBlocks.Outbox.EF;
 using BuildingBlocks.Persistence;
 using BuildingBlocks.Swagger;
 using BuildingBlocks.Web;
@@ -39,6 +41,7 @@ builder.Services.AddCustomMediatR();
 builder.Services.AddValidatorsFromAssembly(typeof(FlightRoot).Assembly);
 builder.Services.AddCustomProblemDetails();
 builder.Services.AddCustomMapster(typeof(FlightRoot).Assembly);
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<IEventMapper, EventMapper>();
 builder.Services.AddTransient<IMessageBroker, MessageBroker>();
@@ -48,6 +51,8 @@ builder.Services.AddCustomMassTransit(typeof(FlightRoot).Assembly);
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 SnowFlakIdGenerator.Configure(1);
+
+builder.Services.AddEntityFrameworkOutbox<FlightDbContext>(configuration, typeof(FlightDbContext).Assembly);
 
 var app = builder.Build();
 
