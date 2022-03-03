@@ -11,6 +11,6 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Reservatio
 
         builder.UseSqlServer(
             "Data Source=.\\sqlexpress;Initial Catalog=ReservationDB;Persist Security Info=False;Integrated Security=SSPI");
-        return new ReservationDbContext(builder.Options);
+        return new ReservationDbContext(builder.Options, null);
     }
 }

@@ -16,14 +16,12 @@ namespace Flight.Flight.Features.CreateFlight;
 public class CreateFlightCommandHandler : IRequestHandler<CreateFlightCommand, FlightResponseDto>
 {
     private readonly FlightDbContext _flightDbContext;
-    private readonly IEventProcessor _eventProcessor;
     private readonly IMapper _mapper;
 
-    public CreateFlightCommandHandler(IMapper mapper, FlightDbContext flightDbContext, IEventProcessor eventProcessor)
+    public CreateFlightCommandHandler(IMapper mapper, FlightDbContext flightDbContext)
     {
         _mapper = mapper;
         _flightDbContext = flightDbContext;
-        _eventProcessor = eventProcessor;
     }
 
     public async Task<FlightResponseDto> Handle(CreateFlightCommand command, CancellationToken cancellationToken)
@@ -38,10 +36,6 @@ public class CreateFlightCommandHandler : IRequestHandler<CreateFlightCommand, F
             command.ArriveDate, command.ArriveAirportId, command.DurationMinutes, command.FlightDate, FlightStatus.Completed, command.Price, true);
 
         var newFlight = await _flightDbContext.Flights.AddAsync(flightEntity, cancellationToken);
-
-        await _eventProcessor.ProcessAsync(newFlight.Entity.Events, cancellationToken);
-
-        await _flightDbContext.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<FlightResponseDto>(newFlight.Entity);
     }

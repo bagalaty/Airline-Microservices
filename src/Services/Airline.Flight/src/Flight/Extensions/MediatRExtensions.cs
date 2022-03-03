@@ -1,3 +1,4 @@
+using BuildingBlocks.EFCore;
 using BuildingBlocks.Validation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ public static class MediatRExtensions
     {
         services.AddMediatR(typeof(FlightRoot).Assembly);
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(EfTxBehavior<,>));
 
         return services;
     }

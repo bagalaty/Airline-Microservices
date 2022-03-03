@@ -1,7 +1,6 @@
 using System;
 using BuildingBlocks.Persistence;
 using Identity.Data;
-using Identity.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +16,7 @@ public static class MigrationsExtensions
 
         return app;
     }
-    
+
     private static void MigrateDatabase(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();

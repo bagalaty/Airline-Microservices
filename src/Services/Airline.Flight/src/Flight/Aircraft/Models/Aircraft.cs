@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Model;
 using BuildingBlocks.IdsGenerator;
 
 namespace Flight.Aircraft.Models;

@@ -37,7 +37,7 @@ public class OutboxMessage
     /// <summary>
     /// Gets the CorrelationId of our event.
     /// </summary>
-    public string? CorrelationId { get; private set; }
+    public Guid? CorrelationId { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OutboxMessage"/> class.
@@ -57,7 +57,7 @@ public class OutboxMessage
         string name,
         string data,
         EventType eventType,
-        string correlationId = null)
+        Guid? correlationId = null)
     {
         OccurredOn = occurredOn;
         Type = type;

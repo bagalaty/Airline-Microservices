@@ -9,7 +9,6 @@ using Reservation.Flight.Dtos;
 using Reservation.Flight.Exceptions;
 using Reservation.Passenger.Clients;
 using Reservation.Reservation.Dtos;
-using Reservation.Reservation.Exceptions;
 using Reservation.Reservation.Models.ValueObjects;
 
 namespace Reservation.Reservation.Features.CreateReservation;
@@ -20,23 +19,18 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
     private readonly ReservationDbContext _reservationDbContext;
     private readonly IFlightServiceClient _flightServiceClient;
     private readonly IPassengerServiceClient _passengerServiceClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
 
     public CreateReservationCommandHandler(
-        IEventProcessor eventProcessor,
         IMapper mapper,
         ReservationDbContext reservationDbContext,
         IFlightServiceClient flightServiceClient,
-        IPassengerServiceClient passengerServiceClient,
-        IHttpContextAccessor httpContextAccessor)
+        IPassengerServiceClient passengerServiceClient)
     {
-        _eventProcessor = eventProcessor;
         _mapper = mapper;
         _reservationDbContext = reservationDbContext;
         _flightServiceClient = flightServiceClient;
         _passengerServiceClient = passengerServiceClient;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ReservationResponseDto> Handle(CreateReservationCommand command, CancellationToken cancellationToken)
@@ -59,10 +53,6 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
                 await _flightServiceClient.ReserveSeat(new ReserveSeatRequestDto(flight.Id, emptySeat?.SeatNumber));
 
                 var newReservation = await _reservationDbContext.Reservations.AddAsync(reservationEntity, cancellationToken);
-
-                await _eventProcessor.ProcessAsync(newReservation.Entity.Events, cancellationToken);
-
-                await _reservationDbContext.SaveChangesAsync(cancellationToken);
 
                 return _mapper.Map<ReservationResponseDto>(newReservation.Entity);
             }

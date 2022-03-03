@@ -1,5 +1,6 @@
 using System;
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Model;
 using BuildingBlocks.IdsGenerator;
 using Flight.Flight.Events.Domain;
 
@@ -39,7 +40,7 @@ public class Flight : BaseAggregateRoot<long>
             Price = price
         };
 
-        flight.AddEvent(new FlightCreatedDomainEvent(flight.FlightNumber));
+        flight.AddDomainEvent(new FlightCreatedDomainEvent(flight.FlightNumber));
 
         return flight;
     }

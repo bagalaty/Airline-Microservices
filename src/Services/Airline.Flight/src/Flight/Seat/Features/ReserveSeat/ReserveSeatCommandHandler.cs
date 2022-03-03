@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Domain;
 using Flight.Data;
-using Flight.Flight.Exceptions;
 using Flight.Seat.Dtos;
 using Flight.Seat.Exceptions;
 using MapsterMapper;
@@ -13,15 +11,13 @@ namespace Flight.Seat.Features.ReserveSeat;
 
 public class ReserveSeatCommandHandler : IRequestHandler<ReserveSeatCommand, SeatResponseDto>
 {
-    private readonly IEventProcessor _eventProcessor;
     private readonly FlightDbContext _flightDbContext;
     private readonly IMapper _mapper;
 
-    public ReserveSeatCommandHandler(IMapper mapper, FlightDbContext flightDbContext, IEventProcessor eventProcessor)
+    public ReserveSeatCommandHandler(IMapper mapper, FlightDbContext flightDbContext)
     {
         _mapper = mapper;
         _flightDbContext = flightDbContext;
-        _eventProcessor = eventProcessor;
     }
 
     public async Task<SeatResponseDto> Handle(ReserveSeatCommand command, CancellationToken cancellationToken)
@@ -35,10 +31,6 @@ public class ReserveSeatCommandHandler : IRequestHandler<ReserveSeatCommand, Sea
         var reserveSeat = await seat.ReserveSeat(seat);
 
         var updatedSeat = _flightDbContext.Seats.Update(reserveSeat);
-
-        await _eventProcessor.ProcessAsync(updatedSeat.Entity.Events, cancellationToken);
-
-        await _flightDbContext.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<SeatResponseDto>(updatedSeat.Entity);
     }

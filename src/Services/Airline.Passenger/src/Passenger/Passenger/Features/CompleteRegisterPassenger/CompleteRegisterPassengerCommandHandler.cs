@@ -10,13 +10,11 @@ namespace Passenger.Passenger.Features.CompleteRegisterPassenger;
 
 public class CompleteRegisterPassengerCommandHandler : IRequestHandler<CompleteRegisterPassengerCommand, PassengerResponseDto>
 {
-    private readonly IEventProcessor _eventProcessor;
     private readonly IMapper _mapper;
     private readonly PassengerDbContext _passengerDbContext;
 
-    public CompleteRegisterPassengerCommandHandler(IEventProcessor eventProcessor, IMapper mapper, PassengerDbContext passengerDbContext)
+    public CompleteRegisterPassengerCommandHandler(IMapper mapper, PassengerDbContext passengerDbContext)
     {
-        _eventProcessor = eventProcessor;
         _mapper = mapper;
         _passengerDbContext = passengerDbContext;
     }
@@ -33,10 +31,6 @@ public class CompleteRegisterPassengerCommandHandler : IRequestHandler<CompleteR
         var passengerEntity = passenger.CompleteRegistrationPassenger(passenger.Name, passenger.PassportNumber, command.PassengerType, command.Age, passenger.Id);
 
         var updatePassenger = _passengerDbContext.Passengers.Update(passengerEntity);
-
-        await _eventProcessor.ProcessAsync(updatePassenger.Entity.Events, cancellationToken);
-
-        await _passengerDbContext.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<PassengerResponseDto>(updatePassenger.Entity);
     }

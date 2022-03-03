@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Model;
 
 namespace BuildingBlocks.Persistence
 {

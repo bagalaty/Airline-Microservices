@@ -1,4 +1,5 @@
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Model;
 using BuildingBlocks.IdsGenerator;
 
 namespace Passenger.Passenger.Models;

@@ -1,12 +1,11 @@
-using System.Reflection;
-using System.Text.Json;
 using BuildingBlocks.Domain;
+using BuildingBlocks.EFCore;
 using BuildingBlocks.IdsGenerator;
 using BuildingBlocks.Jwt;
+using BuildingBlocks.Logging;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
 using BuildingBlocks.Outbox;
-using BuildingBlocks.Outbox.EF;
 using BuildingBlocks.Persistence;
 using BuildingBlocks.Swagger;
 using BuildingBlocks.Web;
@@ -18,21 +17,19 @@ using Flight.Extensions;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 Console.WriteLine(FiggleFonts.Standard.Render(configuration["app"]));
 
-builder.Services.AddDbContext<FlightDbContext>(options =>
-    options.UseSqlServer(
-        configuration.GetConnectionString("FlightConnection"),
-        x => x.MigrationsAssembly(typeof(FlightDbContext).Assembly.FullName)));
-
+builder.Services.AddCustomDbContext<FlightDbContext>(configuration, typeof(FlightRoot).Assembly)
+    .AddEntityFrameworkOutbox();
 
 builder.Services.AddScoped<IDataSeeder, FlightDataSeeder>();
 
+builder.AddCustomSerilog();
 builder.Services.AddJwt();
 builder.Services.AddControllers();
 builder.Services.AddCustomSwagger(builder.Configuration, typeof(FlightRoot).Assembly);
@@ -44,15 +41,12 @@ builder.Services.AddCustomMapster(typeof(FlightRoot).Assembly);
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<IEventMapper, EventMapper>();
-builder.Services.AddTransient<IMessageBroker, MessageBroker>();
-builder.Services.AddTransient<IEventProcessor, EventProcessor>();
 
 builder.Services.AddCustomMassTransit(typeof(FlightRoot).Assembly);
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 SnowFlakIdGenerator.Configure(1);
 
-builder.Services.AddEntityFrameworkOutbox<FlightDbContext>(configuration, typeof(FlightDbContext).Assembly);
 
 var app = builder.Build();
 
@@ -62,6 +56,7 @@ if (app.Environment.IsDevelopment())
     app.UseCustomSwagger(provider);
 }
 
+app.UseSerilogRequestLogging();
 app.UseMigrations();
 app.UseProblemDetails();
 app.UseHttpsRedirection();

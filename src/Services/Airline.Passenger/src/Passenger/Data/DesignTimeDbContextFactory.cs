@@ -11,6 +11,6 @@ public class DesignTimeDbContextFactory: IDesignTimeDbContextFactory<PassengerDb
 
         builder.UseSqlServer(
             "Data Source=.\\sqlexpress;Initial Catalog=PassengerDB;Persist Security Info=False;Integrated Security=SSPI");
-        return new PassengerDbContext(builder.Options);
+        return new PassengerDbContext(builder.Options, null);
     }
 }

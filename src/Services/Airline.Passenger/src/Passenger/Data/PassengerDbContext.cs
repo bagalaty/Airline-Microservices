@@ -1,11 +1,13 @@
 using System.Reflection;
+using BuildingBlocks.EFCore;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Passenger.Data;
 
-public sealed class PassengerDbContext: DbContext
+public sealed class PassengerDbContext : AppDbContextBase
 {
-    public PassengerDbContext(DbContextOptions options) : base(options)
+    public PassengerDbContext(DbContextOptions options, IHttpContextAccessor httpContextAccessor) : base(options, httpContextAccessor)
     {
     }
 

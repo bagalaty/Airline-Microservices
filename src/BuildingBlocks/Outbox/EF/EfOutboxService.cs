@@ -1,5 +1,6 @@
 using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Event;
 using BuildingBlocks.EFCore;
 using Humanizer;
 using MassTransit;
@@ -78,7 +79,7 @@ public class EfOutboxService : IOutboxService
             name.Underscore(),
             JsonConvert.SerializeObject(integrationEvent),
             EventType.IntegrationEvent,
-            correlationId: null);
+            integrationEvent.CorrelationId);
 
         await _dbContext.OutboxMessages.AddAsync(outboxMessages, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -90,7 +91,7 @@ public class EfOutboxService : IOutboxService
     public async Task PublishUnsentOutboxMessagesAsync(CancellationToken cancellationToken = default)
     {
         var unsentMessages = await _dbContext.OutboxMessages
-            .Where(x => x.ProcessedOn == null).ToListAsync(cancellationToken: cancellationToken);
+            .Where(x => x.ProcessedOn == null).ToListAsync(cancellationToken);
 
         if (!unsentMessages.Any())
         {
@@ -98,7 +99,7 @@ public class EfOutboxService : IOutboxService
             return;
         }
 
-        _logger.LogInformation(
+        _logger.LogTrace(
             "Found {Count} unsent messages in outbox, sending...",
             unsentMessages.Count);
 
@@ -121,9 +122,9 @@ public class EfOutboxService : IOutboxService
                 var integrationEvent = data as IIntegrationEvent;
 
                 // integration event
-                await _pushEndpoint.Publish(integrationEvent, cancellationToken);
+                await _pushEndpoint.Publish((dynamic)integrationEvent, cancellationToken);
 
-                _logger.LogInformation(
+                _logger.LogTrace(
                     "Publish a message: '{Name}' with ID: '{Id} (outbox)'",
                     outboxMessage.Name,
                     integrationEvent?.EventId);

@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
 using System.Data;
 using System.Reflection;
-using BuildingBlocks.Outbox;
-using BuildingBlocks.Outbox.EF;
+using BuildingBlocks.Domain.Event;
+using BuildingBlocks.Domain.Model;
+using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -25,7 +27,8 @@ public abstract class AppDbContextBase : DbContext, IDbContext
         base.OnModelCreating(builder);
     }
 
-    public async Task BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
+    public async Task BeginTransactionAsync(IsolationLevel isolationLevel,
+        CancellationToken cancellationToken = default)
     {
         _currentTransaction ??= await Database.BeginTransactionAsync(isolationLevel, cancellationToken);
     }
@@ -63,12 +66,29 @@ public abstract class AppDbContextBase : DbContext, IDbContext
         }
     }
 
+    public IReadOnlyList<IDomainEvent> GetDomainEvents()
+    {
+        var domainEntities = ChangeTracker
+            .Entries<IAggregate>()
+            .Where(x => x.Entity.DomainEvents.Any())
+            .Select(x => x.Entity)
+            .ToList();
+
+        var domainEvents = domainEntities
+            .SelectMany(x => x.DomainEvents)
+            .ToImmutableList();
+
+        domainEntities.ForEach(entity => entity.ClearDomainEvents());
+
+        return domainEvents.ToImmutableList();
+    }
+
     // https://www.meziantou.net/entity-framework-core-generate-tracking-columns.htm
     // https://www.meziantou.net/entity-framework-core-soft-delete-using-query-filters.htm
     private void OnBeforeSaving()
     {
         var now = DateTime.Now;
-        //var userId = Convert.ToInt32(_httpContextAccessor?.HttpContext?.User?.Identity?.GetSubjectId());
+        // var userId = Convert.ToInt32(_httpContextAccessor?.HttpContext?.User?.Identity?.GetSubjectId());
 
         foreach (var entry in ChangeTracker.Entries())
         {

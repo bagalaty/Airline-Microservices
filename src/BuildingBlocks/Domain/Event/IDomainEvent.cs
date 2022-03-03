@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace BuildingBlocks.Domain;
+namespace BuildingBlocks.Domain.Event;
 
 public interface IDomainEvent: INotification
 {

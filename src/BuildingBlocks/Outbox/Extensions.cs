@@ -1,41 +1,27 @@
-using System.Reflection;
-using Ardalis.GuardClauses;
-using BuildingBlocks.EFCore;
+using BuildingBlocks.Domain;
 using BuildingBlocks.Outbox.EF;
-using BuildingBlocks.Utils;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using BuildingBlocks.Outbox.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BuildingBlocks.Outbox;
 
 public static class Extensions
 {
-    public static IServiceCollection AddEntityFrameworkOutbox<TContext>(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        Assembly migrationAssembly)
-        where TContext : AppDbContextBase
+    public static IServiceCollection AddEntityFrameworkOutbox(this IServiceCollection services)
     {
-        var outboxOption = Guard.Against.Null(
-            configuration.GetOptions<OutboxOptions>(nameof(OutboxOptions)),
-            nameof(OutboxOptions));
+        services.AddHostedService<OutboxProcessorBackgroundService>();
+        services.AddScoped<IOutboxService, EfOutboxService>();
+        services.AddScoped<IEventProcessor, EventProcessor>();
 
-        services.AddOptions<OutboxOptions>().Bind(configuration.GetSection(nameof(OutboxOptions)))
-            .ValidateDataAnnotations();
+        return services;
+    }
 
-        AppContext.SetSwitch("SqlServer.EnableLegacyTimestampBehavior", true);
-
-        services.AddDbContext<TContext>(options =>
-        {
-            options.UseSqlServer(outboxOption.ConnectionString, sqlOptions =>
-            {
-                sqlOptions.MigrationsAssembly(migrationAssembly.GetName().FullName);
-                sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
-            }).UseSnakeCaseNamingConvention();
-        });
-
-        services.AddTransient<IOutboxService, EfOutboxService>();
+    public static IServiceCollection AddInMemoryOutbox(this IServiceCollection services)
+    {
+        services.AddHostedService<OutboxProcessorBackgroundService>();
+        services.AddSingleton<IInMemoryOutboxStore, InMemoryOutboxStore>();
+        services.AddScoped<IOutboxService, InMemoryOutboxService>();
+        services.AddScoped<IEventProcessor, EventProcessor>();
 
         return services;
     }

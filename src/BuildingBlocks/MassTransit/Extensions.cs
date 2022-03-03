@@ -1,5 +1,6 @@
 using System.Reflection;
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Event;
 using BuildingBlocks.Utils;
 using Humanizer;
 using MassTransit;

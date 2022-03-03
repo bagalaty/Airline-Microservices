@@ -15,15 +15,13 @@ namespace Flight.Aircraft.Features.CreateAircraft;
 
 public class CreateAircraftCommandHandler : IRequestHandler<CreateAircraftCommand, AircraftResponseDto>
 {
-    private readonly IEventProcessor _eventProcessor;
     private readonly FlightDbContext _flightDbContext;
     private readonly IMapper _mapper;
 
-    public CreateAircraftCommandHandler(IMapper mapper, FlightDbContext flightDbContext, IEventProcessor eventProcessor)
+    public CreateAircraftCommandHandler(IMapper mapper, FlightDbContext flightDbContext)
     {
         _mapper = mapper;
         _flightDbContext = flightDbContext;
-        _eventProcessor = eventProcessor;
     }
 
     public async Task<AircraftResponseDto> Handle(CreateAircraftCommand command, CancellationToken cancellationToken)
@@ -36,8 +34,6 @@ public class CreateAircraftCommandHandler : IRequestHandler<CreateAircraftComman
         var aircraftEntity = Models.Aircraft.Create(command.Name, command.Model, command.ManufacturingYear);
 
         var newAircraft = await _flightDbContext.Aircraft.AddAsync(aircraftEntity, cancellationToken);
-
-        await _eventProcessor.ProcessAsync(newAircraft.Entity.Events, cancellationToken);
 
         await _flightDbContext.SaveChangesAsync(cancellationToken);
 

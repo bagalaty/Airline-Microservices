@@ -1,3 +1,5 @@
+using BuildingBlocks.Domain.Event;
+
 namespace BuildingBlocks.Domain;
 
 public interface IEventMapper

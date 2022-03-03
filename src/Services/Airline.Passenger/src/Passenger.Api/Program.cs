@@ -1,24 +1,31 @@
 using BuildingBlocks.Domain;
+using BuildingBlocks.EFCore;
 using BuildingBlocks.IdsGenerator;
 using BuildingBlocks.Jwt;
+using BuildingBlocks.Logging;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
+using BuildingBlocks.Outbox;
 using BuildingBlocks.Swagger;
 using BuildingBlocks.Web;
 using Figgle;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
 using Passenger;
 using Passenger.Data;
 using Passenger.Extensions;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 Console.WriteLine(FiggleFonts.Standard.Render(configuration["app"]));
 
+builder.Services.AddCustomDbContext<PassengerDbContext>(configuration, typeof(PassengerRoot).Assembly)
+    .AddEntityFrameworkOutbox();
+
+builder.AddCustomSerilog();
 builder.Services.AddJwt();
 builder.Services.AddControllers();
 builder.Services.AddCustomSwagger(builder.Configuration, typeof(PassengerRoot).Assembly);
@@ -27,16 +34,9 @@ builder.Services.AddCustomMediatR();
 builder.Services.AddValidatorsFromAssembly(typeof(PassengerRoot).Assembly);
 builder.Services.AddCustomProblemDetails();
 builder.Services.AddCustomMapster(typeof(PassengerRoot).Assembly);
-
-
-builder.Services.AddDbContext<PassengerDbContext>(option =>
-{
-    option.UseSqlServer(configuration.GetConnectionString("PassengerConnection"));
-});
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<IEventMapper, EventMapper>();
-builder.Services.AddTransient<IMessageBroker, MessageBroker>();
-builder.Services.AddTransient<IEventProcessor, EventProcessor>();
 
 builder.Services.AddCustomMassTransit(typeof(PassengerRoot).Assembly);
 
@@ -50,6 +50,7 @@ if (app.Environment.IsDevelopment())
     app.UseCustomSwagger(provider);
 }
 
+app.UseSerilogRequestLogging();
 app.UseProblemDetails();
 app.UseHttpsRedirection();
 app.UseAuthentication();

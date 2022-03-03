@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Model;
 using BuildingBlocks.IdsGenerator;
 using Flight.Flight.Exceptions;
 

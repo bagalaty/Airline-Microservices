@@ -28,11 +28,10 @@ internal class OutboxProcessorBackgroundService : BackgroundService
     {
         if (!_enabled)
         {
-            _logger.LogInformation("Outbox is disabled");
+            _logger.LogTrace("Outbox is disabled");
             return;
         }
 
-        _logger.LogInformation("Outbox is enabled");
         while (!stoppingToken.IsCancellationRequested)
         {
             _logger.LogTrace("Started processing outbox messages...");

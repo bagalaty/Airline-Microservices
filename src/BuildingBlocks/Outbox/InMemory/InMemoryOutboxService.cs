@@ -1,10 +1,7 @@
 using Ardalis.GuardClauses;
-using BuildingBlocks.Domain;
-using BuildingBlocks.EFCore;
-using BuildingBlocks.Outbox.EF;
+using BuildingBlocks.Domain.Event;
 using Humanizer;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -13,66 +10,59 @@ namespace BuildingBlocks.Outbox.InMemory;
 
 public class InMemoryOutboxService : IOutboxService
 {
+    private readonly IInMemoryOutboxStore _inMemoryOutboxStore;
     private readonly ILogger<InMemoryOutboxService> _logger;
     private readonly OutboxOptions _options;
-    private readonly IDbContext _dbContext;
     private readonly IPublishEndpoint _pushEndpoint;
 
     public InMemoryOutboxService(
         IOptions<OutboxOptions> options,
         ILogger<InMemoryOutboxService> logger,
-        IPublishEndpoint pushEndpoint,
-        IDbContext dbContext)
+        IInMemoryOutboxStore inMemoryOutboxStore,
+        IPublishEndpoint pushEndpoint)
     {
         _options = options.Value;
         _logger = logger;
+        _inMemoryOutboxStore = inMemoryOutboxStore;
         _pushEndpoint = pushEndpoint;
-        _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<OutboxMessage>> GetAllUnsentOutboxMessagesAsync(
+    public Task<IEnumerable<OutboxMessage>> GetAllUnsentOutboxMessagesAsync(
+        EventType eventType = EventType.IntegrationEvent,
+        CancellationToken cancellationToken = default)
+    {
+        var messages = _inMemoryOutboxStore.Events
+            .Where(x => x.EventType == eventType && x.ProcessedOn == null);
+
+        return Task.FromResult(messages);
+    }
+
+    public Task<IEnumerable<OutboxMessage>> GetAllOutboxMessagesAsync(
         EventType eventType = EventType.IntegrationEvent | EventType.DomainEvent,
         CancellationToken cancellationToken = default)
     {
-        var messages = await _dbContext.OutboxMessages
-            .Where(x => x.EventType == eventType && x.ProcessedOn == null)
-            .ToListAsync(cancellationToken: cancellationToken);
+        var messages = _inMemoryOutboxStore.Events
+            .Where(x => x.EventType == eventType);
 
-        return messages;
+        return Task.FromResult(messages);
     }
 
-    public async Task<IEnumerable<OutboxMessage>> GetAllOutboxMessagesAsync(
-        EventType eventType = EventType.IntegrationEvent | EventType.DomainEvent,
-        CancellationToken cancellationToken = default)
+    public Task CleanProcessedAsync(CancellationToken cancellationToken = default)
     {
-        var messages = await _dbContext.OutboxMessages
-            .Where(x => x.EventType == eventType).ToListAsync(cancellationToken: cancellationToken);
+        _inMemoryOutboxStore.Events.ToList().RemoveAll(x => x.ProcessedOn != null);
 
-        return messages;
-    }
-
-    public async Task CleanProcessedAsync(CancellationToken cancellationToken = default)
-    {
-        var messages = await _dbContext.OutboxMessages
-            .Where(x => x.ProcessedOn != null).ToListAsync(cancellationToken: cancellationToken);
-
-        _dbContext.OutboxMessages.RemoveRange(messages);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Task.CompletedTask;
     }
 
 
     public async Task PublishUnsentOutboxMessagesAsync(CancellationToken cancellationToken = default)
     {
-        var unsentMessages = await _dbContext.OutboxMessages
-            .Where(x => x.ProcessedOn == null).ToListAsync(cancellationToken: cancellationToken);
+        var unsentMessages = _inMemoryOutboxStore.Events
+            .Where(x => x.ProcessedOn == null).ToList();
 
-        if (!unsentMessages.Any())
-        {
-            _logger.LogTrace("No unsent messages found in outbox");
-            return;
-        }
+        if (!unsentMessages.Any()) _logger.LogTrace("No unsent messages found in outbox");
 
-        _logger.LogInformation(
+        _logger.LogTrace(
             "Found {Count} unsent messages in outbox, sending...",
             unsentMessages.Count);
 
@@ -97,7 +87,7 @@ public class InMemoryOutboxService : IOutboxService
                 // integration event
                 await _pushEndpoint.Publish(integrationEvent, cancellationToken);
 
-                _logger.LogInformation(
+                _logger.LogTrace(
                     "Publish a message: '{Name}' with ID: '{Id} (outbox)'",
                     outboxMessage.Name,
                     integrationEvent?.EventId);
@@ -105,21 +95,19 @@ public class InMemoryOutboxService : IOutboxService
 
             outboxMessage.MarkAsProcessed();
         }
-
-        await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task SaveAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
+    public Task SaveAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
         Guard.Against.Null(integrationEvent, nameof(integrationEvent));
 
         if (!_options.Enabled)
         {
             _logger.LogWarning("Outbox is disabled, outgoing messages won't be saved");
-            return;
+            return Task.CompletedTask;
         }
 
-        string name = integrationEvent.GetType().Name;
+        var name = integrationEvent.GetType().Name;
 
         var outboxMessages = new OutboxMessage(
             integrationEvent.EventId,
@@ -128,11 +116,12 @@ public class InMemoryOutboxService : IOutboxService
             name.Underscore(),
             JsonConvert.SerializeObject(integrationEvent),
             EventType.IntegrationEvent,
-            null);
+            integrationEvent.CorrelationId);
 
-        await _dbContext.OutboxMessages.AddAsync(outboxMessages, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        _inMemoryOutboxStore.Events.Add(outboxMessages);
 
         _logger.LogInformation("Saved message to the outbox");
+
+        return Task.CompletedTask;
     }
 }

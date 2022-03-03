@@ -1,6 +1,5 @@
 using Identity.Data;
 using Identity.Identity.Models;
-using Identity.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;

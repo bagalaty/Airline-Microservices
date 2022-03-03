@@ -28,8 +28,8 @@ namespace Flight.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CorrelationId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Data")
                         .IsRequired()
@@ -77,6 +77,9 @@ namespace Flight.Data.Migrations
                     b.Property<string>("Model")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -101,6 +104,9 @@ namespace Flight.Data.Migrations
 
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -145,6 +151,9 @@ namespace Flight.Data.Migrations
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -176,6 +185,9 @@ namespace Flight.Data.Migrations
 
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
 
                     b.Property<string>("SeatNumber")
                         .HasColumnType("nvarchar(max)");

@@ -1,7 +1,6 @@
 using MassTransit;
-using MediatR;
 
-namespace BuildingBlocks.Domain;
+namespace BuildingBlocks.Domain.Event;
 
 [ExcludeFromTopology]
 public interface IIntegrationEvent : IEvent

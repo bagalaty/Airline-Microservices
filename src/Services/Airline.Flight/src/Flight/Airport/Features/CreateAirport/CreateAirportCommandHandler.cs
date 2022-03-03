@@ -12,15 +12,13 @@ namespace Flight.Airport.Features.CreateAirport;
 
 public class CreateAirportCommandHandler : IRequestHandler<CreateAirportCommand, AirportResponseDto>
 {
-    private readonly IEventProcessor _eventProcessor;
     private readonly FlightDbContext _flightDbContext;
     private readonly IMapper _mapper;
 
-    public CreateAirportCommandHandler(IMapper mapper, FlightDbContext flightDbContext, IEventProcessor eventProcessor)
+    public CreateAirportCommandHandler(IMapper mapper, FlightDbContext flightDbContext)
     {
         _mapper = mapper;
         _flightDbContext = flightDbContext;
-        _eventProcessor = eventProcessor;
     }
 
     public async Task<AirportResponseDto> Handle(CreateAirportCommand command, CancellationToken cancellationToken)
@@ -33,8 +31,6 @@ public class CreateAirportCommandHandler : IRequestHandler<CreateAirportCommand,
         var airportEntity = Models.Airport.Create(command.Name, command.Code, command.Address);
 
         var newAirport = await _flightDbContext.Airports.AddAsync(airportEntity, cancellationToken);
-
-        await _eventProcessor.ProcessAsync(newAirport.Entity.Events, cancellationToken);
 
         await _flightDbContext.SaveChangesAsync(cancellationToken);
 

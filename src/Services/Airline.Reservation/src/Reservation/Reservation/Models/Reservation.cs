@@ -1,4 +1,5 @@
 using BuildingBlocks.Domain;
+using BuildingBlocks.Domain.Model;
 using BuildingBlocks.IdsGenerator;
 using Reservation.Reservation.Models.ValueObjects;
 
