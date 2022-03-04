@@ -1,6 +1,7 @@
 using System.Reflection;
 using BuildingBlocks.Domain;
 using BuildingBlocks.Domain.Event;
+using BuildingBlocks.EventBus.Messages;
 using BuildingBlocks.Utils;
 using Humanizer;
 using MassTransit;
@@ -10,10 +11,11 @@ namespace BuildingBlocks.MassTransit;
 
 public static class Extensions
 {
-    static bool? _isRunningInContainer;
+    private static bool? _isRunningInContainer;
 
     private static bool IsRunningInContainer => _isRunningInContainer ??=
-        bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) && inContainer;
+        bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) &&
+        inContainer;
 
     public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, Assembly assembly)
     {
@@ -26,16 +28,17 @@ public static class Extensions
                 var rabbitMqOptions = services.GetOptions<RabbitMqOptions>("RabbitMq");
                 var host = IsRunningInContainer ? "rabbitmq" : rabbitMqOptions.HostName;
 
-                    configurator.Host(host, h =>
+                configurator.Host(host, h =>
                 {
                     h.Username(rabbitMqOptions.UserName);
                     h.Password(rabbitMqOptions.Password);
                 });
 
                 var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
-                    .Where(x => x.IsAssignableTo(typeof(IIntegrationEvent)) && x.IsInterface == false &&
-                                x.IsAbstract == false &&
-                                x.IsGenericType == false);
+                    .Where(x => x.IsAssignableTo(typeof(IIntegrationEvent))
+                                && !x.IsInterface
+                                && !x.IsAbstract
+                                && !x.IsGenericType);
 
                 foreach (var type in types)
                 {
@@ -64,10 +67,8 @@ public static class Extensions
                             });
                 }
             });
-
         });
 
         return services;
     }
 }
-

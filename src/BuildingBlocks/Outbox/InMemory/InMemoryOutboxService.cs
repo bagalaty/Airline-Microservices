@@ -1,7 +1,9 @@
 using Ardalis.GuardClauses;
 using BuildingBlocks.Domain.Event;
+using BuildingBlocks.Web;
 using Humanizer;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -11,6 +13,7 @@ namespace BuildingBlocks.Outbox.InMemory;
 public class InMemoryOutboxService : IOutboxService
 {
     private readonly IInMemoryOutboxStore _inMemoryOutboxStore;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<InMemoryOutboxService> _logger;
     private readonly OutboxOptions _options;
     private readonly IPublishEndpoint _pushEndpoint;
@@ -19,11 +22,13 @@ public class InMemoryOutboxService : IOutboxService
         IOptions<OutboxOptions> options,
         ILogger<InMemoryOutboxService> logger,
         IInMemoryOutboxStore inMemoryOutboxStore,
+        IHttpContextAccessor httpContextAccessor,
         IPublishEndpoint pushEndpoint)
     {
         _options = options.Value;
         _logger = logger;
         _inMemoryOutboxStore = inMemoryOutboxStore;
+        _httpContextAccessor = httpContextAccessor;
         _pushEndpoint = pushEndpoint;
     }
 
@@ -116,7 +121,7 @@ public class InMemoryOutboxService : IOutboxService
             name.Underscore(),
             JsonConvert.SerializeObject(integrationEvent),
             EventType.IntegrationEvent,
-            integrationEvent.CorrelationId);
+            new Guid(_httpContextAccessor.HttpContext.GetCorrelationId()));
 
         _inMemoryOutboxStore.Events.Add(outboxMessages);
 

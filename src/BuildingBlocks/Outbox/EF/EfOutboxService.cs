@@ -2,8 +2,11 @@ using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using BuildingBlocks.Domain.Event;
 using BuildingBlocks.EFCore;
+using BuildingBlocks.EventBus.Messages;
+using BuildingBlocks.Web;
 using Humanizer;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,17 +19,20 @@ public class EfOutboxService : IOutboxService
     private readonly OutboxOptions _options;
     private readonly ILogger<EfOutboxService> _logger;
     private readonly IPublishEndpoint _pushEndpoint;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IDbContext _dbContext;
 
     public EfOutboxService(
         IOptions<OutboxOptions> options,
         ILogger<EfOutboxService> logger,
         IPublishEndpoint pushEndpoint,
+        IHttpContextAccessor httpContextAccessor,
         IDbContext dbContext)
     {
         _options = options.Value;
         _logger = logger;
         _pushEndpoint = pushEndpoint;
+        _httpContextAccessor = httpContextAccessor;
         _dbContext = dbContext;
     }
 
@@ -79,7 +85,7 @@ public class EfOutboxService : IOutboxService
             name.Underscore(),
             JsonConvert.SerializeObject(integrationEvent),
             EventType.IntegrationEvent,
-            integrationEvent.CorrelationId);
+            new Guid(_httpContextAccessor.HttpContext.GetCorrelationId()));
 
         await _dbContext.OutboxMessages.AddAsync(outboxMessages, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -121,8 +127,11 @@ public class EfOutboxService : IOutboxService
             {
                 var integrationEvent = data as IIntegrationEvent;
 
-                // integration event
-                await _pushEndpoint.Publish((dynamic)integrationEvent, cancellationToken);
+                // Publish integration event
+                await _pushEndpoint.Publish((object)integrationEvent, context =>
+                {
+                    context.CorrelationId = outboxMessage.CorrelationId;
+                }, cancellationToken);
 
                 _logger.LogTrace(
                     "Publish a message: '{Name}' with ID: '{Id} (outbox)'",

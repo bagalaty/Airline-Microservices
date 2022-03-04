@@ -1,5 +1,10 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http.Headers;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +14,9 @@ namespace BuildingBlocks.Web
 {
     public static class Extensions
     {
-         public static void AddCustomVersioning(this IServiceCollection services,
+        private const string CorrelationId = "correlationId";
+
+        public static void AddCustomVersioning(this IServiceCollection services,
             Action<ApiVersioningOptions> configurator = null)
         {
             //https://www.meziantou.net/versioning-an-asp-net-core-api.htm
@@ -52,138 +59,24 @@ namespace BuildingBlocks.Web
         }
 
 
-
-        public static void Unregister<TService>(this IServiceCollection services)
-        {
-            var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(TService));
-            services.Remove(descriptor);
-        }
-
-        public static void Replace<TService, TImplementation>(this IServiceCollection services,
-            ServiceLifetime lifetime)
-        {
-            services.Unregister<TService>();
-            services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime));
-        }
-
-        /// <summary>
-        /// Adds a new transient registration to the service collection only when no existing registration of the same service type and implementation type exists.
-        /// In contrast to TryAddTransient, which only checks the service type.
-        /// </summary>
-        /// <param name="services">The service collection</param>
-        /// <param name="serviceType">Service type</param>
-        /// <param name="implementationType">Implementation type</param>
-        private static void TryAddTransientExact(this IServiceCollection services, Type serviceType,
-            Type implementationType)
-        {
-            if (services.Any(reg => reg.ServiceType == serviceType && reg.ImplementationType == implementationType))
+        public static IApplicationBuilder UseCorrelationId(this IApplicationBuilder app)
+            => app.Use(async (ctx, next) =>
             {
-                return;
-            }
+                if (!ctx.Request.Headers.TryGetValue(CorrelationId, out var correlationId))
+                {
+                    correlationId = Guid.NewGuid().ToString("N");
+                }
 
-            services.AddTransient(serviceType, implementationType);
-        }
+                ctx.Items[CorrelationId] = correlationId.ToString();
+                await next();
+            });
 
-        /// <summary>
-        /// Adds a new transient registration to the service collection only when no existing registration of the same service type and implementation type exists.
-        /// In contrast to TryAddScoped, which only checks the service type.
-        /// </summary>
-        /// <param name="services">The service collection</param>
-        /// <param name="serviceType">Service type</param>
-        /// <param name="implementationType">Implementation type</param>
-        private static void TryAddScopeExact(this IServiceCollection services, Type serviceType,
-            Type implementationType)
+        public static string GetCorrelationId(this HttpContext context)
         {
-            if (services.Any(reg => reg.ServiceType == serviceType && reg.ImplementationType == implementationType))
-            {
-                return;
-            }
-
-            services.AddScoped(serviceType, implementationType);
+            return context.Items.TryGetValue(CorrelationId, out var correlationId) ? correlationId as string : null;
         }
 
-        /// <summary>
-        /// Adds a new transient registration to the service collection only when no existing registration of the same service type and implementation type exists.
-        /// In contrast to TryAddSingleton, which only checks the service type.
-        /// </summary>
-        /// <param name="services">The service collection</param>
-        /// <param name="serviceType">Service type</param>
-        /// <param name="implementationType">Implementation type</param>
-        private static void TryAddSingletonExact(this IServiceCollection services, Type serviceType,
-            Type implementationType)
-        {
-            if (services.Any(reg => reg.ServiceType == serviceType && reg.ImplementationType == implementationType))
-            {
-                return;
-            }
-
-            services.AddSingleton(serviceType, implementationType);
-        }
-
-        public static void ReplaceScoped<TService, TImplementation>(this IServiceCollection services)
-            where TService : class
-            where TImplementation : class, TService
-        {
-            services.Unregister<TService>();
-            services.AddScoped<TService, TImplementation>();
-        }
-
-        public static void ReplaceScoped<TService>(this IServiceCollection services,
-            Func<IServiceProvider, TService> implementationFactory)
-            where TService : class
-        {
-            services.Unregister<TService>();
-            services.AddScoped(implementationFactory);
-        }
-
-        public static void ReplaceTransient<TService, TImplementation>(this IServiceCollection services)
-            where TService : class
-            where TImplementation : class, TService
-        {
-            services.Unregister<TService>();
-            services.AddTransient<TService, TImplementation>();
-        }
-
-        public static void ReplaceTransient<TService>(this IServiceCollection services,
-            Func<IServiceProvider, TService> implementationFactory)
-            where TService : class
-        {
-            services.Unregister<TService>();
-            services.AddTransient(implementationFactory);
-        }
-
-        public static void ReplaceSingleton<TService, TImplementation>(this IServiceCollection services)
-            where TService : class
-            where TImplementation : class, TService
-        {
-            services.Unregister<TService>();
-            services.AddSingleton<TService, TImplementation>();
-        }
-
-        public static void ReplaceSingleton<TService>(this IServiceCollection services,
-            Func<IServiceProvider, TService> implementationFactory)
-            where TService : class
-        {
-            services.Unregister<TService>();
-            services.AddSingleton(implementationFactory);
-        }
-
-        public static void RegisterOptions<TOptions>(this IServiceCollection services, IConfiguration configuration)
-            where TOptions : class, new()
-        {
-            var options = new TOptions();
-            configuration.Bind(typeof(TOptions).Name, options);
-
-            services.AddSingleton(options);
-        }
-
-        public static void RegisterOptions<TOptions>(this IServiceCollection services, IConfiguration configuration,
-            string name) where TOptions : class, new()
-        {
-            var options = new TOptions();
-            configuration.Bind(name, options);
-
-            services.AddSingleton(options);
-        }
+        public static void AddCorrelationId(this HttpResponseHeaders headers, string correlationId)
+            => headers.TryAddWithoutValidation(CorrelationId, correlationId);
     }
 }

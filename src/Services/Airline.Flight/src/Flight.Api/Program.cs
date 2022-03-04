@@ -57,6 +57,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+app.UseCorrelationId();
 app.UseMigrations();
 app.UseProblemDetails();
 app.UseHttpsRedirection();
