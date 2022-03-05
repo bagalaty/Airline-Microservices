@@ -1,17 +1,26 @@
 using BuildingBlocks.Jwt;
+using BuildingBlocks.Logging;
+using BuildingBlocks.Web;
 using Microsoft.AspNetCore.Authentication;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
+builder.AddCustomSerilog();
 builder.Services.AddJwt();
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddReverseProxy().LoadFromConfig(builder.Configuration.GetSection("Yarp"));
 
 
 var app = builder.Build();
 
+
+
+app.UseSerilogRequestLogging();
+app.UseCorrelationId();
 app.UseRouting();
 app.UseHttpsRedirection();
 app.UseAuthentication();

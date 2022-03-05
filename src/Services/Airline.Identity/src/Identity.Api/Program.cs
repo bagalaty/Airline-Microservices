@@ -7,6 +7,7 @@ using BuildingBlocks.MassTransit;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Persistence;
 using BuildingBlocks.Swagger;
+using BuildingBlocks.Utils;
 using BuildingBlocks.Web;
 using Figgle;
 using FluentValidation;
@@ -16,13 +17,15 @@ using Identity.Data;
 using Identity.Extensions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var env = builder.Environment;
 
-Console.WriteLine(FiggleFonts.Standard.Render(configuration["app"]));
+var appOptions = builder.Services.GetOptions<AppOptions>("AppOptions");
+Console.WriteLine(FiggleFonts.Standard.Render(appOptions.Name));
 
 builder.Services.AddScoped<IDbContext>(provider => provider.GetService<IdentityContext>()!);
 
@@ -59,13 +62,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 app.UseCorrelationId();
+app.UseRouting();
+app.UseHttpMetrics();
 app.UseMigrations();
 app.UseProblemDetails();
 app.UseHttpsRedirection();
-app.UseIdentityServer();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapMetrics();
+});
+
 app.MapGet("/", x => x.Response.WriteAsync(configuration["app"]));
 
 app.Run();

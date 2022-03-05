@@ -8,6 +8,7 @@ using BuildingBlocks.MassTransit;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Persistence;
 using BuildingBlocks.Swagger;
+using BuildingBlocks.Utils;
 using BuildingBlocks.Web;
 using Figgle;
 using Flight;
@@ -17,12 +18,14 @@ using Flight.Extensions;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Prometheus;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-Console.WriteLine(FiggleFonts.Standard.Render(configuration["app"]));
+var appOptions = builder.Services.GetOptions<AppOptions>("AppOptions");
+Console.WriteLine(FiggleFonts.Standard.Render(appOptions.Name));
 
 builder.Services.AddCustomDbContext<FlightDbContext>(configuration, typeof(FlightRoot).Assembly)
     .AddEntityFrameworkOutbox();
@@ -58,12 +61,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 app.UseCorrelationId();
+app.UseRouting();
+app.UseHttpMetrics();
 app.UseMigrations();
 app.UseProblemDetails();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapMetrics();
+});
+
 app.MapGet("/", x => x.Response.WriteAsync(configuration["app"]));
 app.Run();

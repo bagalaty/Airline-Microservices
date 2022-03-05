@@ -1,11 +1,16 @@
 using System.Reflection;
-using BuildingBlocks.Domain;
 using BuildingBlocks.Domain.Event;
-using BuildingBlocks.EventBus.Messages;
 using BuildingBlocks.Utils;
+using BuildingBlocks.Web;
 using Humanizer;
+using Jaeger.Samplers;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
+using Jaeger;
+using MassTransit.OpenTracing;
+using MassTransit.PrometheusIntegration;
+using OpenTracing.Util;
+
 
 namespace BuildingBlocks.MassTransit;
 
@@ -34,6 +39,9 @@ public static class Extensions
                     h.Password(rabbitMqOptions.Password);
                 });
 
+                configurator.PropagateOpenTracingContext();
+                configurator.UsePrometheusMetrics(serviceName: services.GetOptions<AppOptions>("AppOptions")?.Name ?? "Unknown");
+
                 var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
                     .Where(x => x.IsAssignableTo(typeof(IIntegrationEvent))
                                 && !x.IsInterface
@@ -46,6 +54,7 @@ public static class Extensions
                         .Where(x => x.IsAssignableTo(typeof(IConsumer<>).MakeGenericType(type))).ToList();
 
                     if (consumers.Any())
+                    {
                         configurator.ReceiveEndpoint(
                             string.IsNullOrEmpty(rabbitMqOptions.ExchangeName)
                                 ? type.Name.Underscore()
@@ -54,7 +63,6 @@ public static class Extensions
                                 foreach (var consumer in consumers)
                                 {
                                     configurator.ConfigureEndpoints(context, x => x.Exclude(consumer));
-
                                     var methodInfo = typeof(DependencyInjectionReceiveEndpointExtensions)
                                         .GetMethods()
                                         .Where(x => x.GetParameters()
@@ -65,9 +73,20 @@ public static class Extensions
                                     generic?.Invoke(e, new object[] {e, context, null});
                                 }
                             });
+                    }
                 }
             });
         });
+
+        services.AddMassTransitHostedService();
+
+        // go to http://localhost:16686 for Jaeger
+        services.AddOpenTracing();
+
+        var tracer = new Tracer.Builder(services.GetOptions<AppOptions>("AppOptions")?.Name ?? "Unknown")
+            .WithSampler(new ConstSampler(true))
+            .Build();
+        GlobalTracer.Register(tracer);
 
         return services;
     }
