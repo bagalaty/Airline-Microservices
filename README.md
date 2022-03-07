@@ -70,6 +70,8 @@ High-level plan is represented in the table
 
 ## :high_brightness: The Domain And Bounded Context - Service Boundary
 
+![](./assets/microservices.jpg)
+
 - `Identity Service`: The Identity Service is a bounded context for authenticate and authorize users through with [Identity Server](https://github.com/DuendeSoftware/IdentityServer). Also, this service is responsible for creating users and their corresponding roles and permission with using [.Net Core Identity](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity) and Jwt authentication and authorization.
 
 - `Flight Service`: The Flight Service is a bounded context for all operation related to flight and get available filght and seat.
