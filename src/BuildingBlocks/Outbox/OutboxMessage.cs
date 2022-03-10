@@ -1,3 +1,5 @@
+using BuildingBlocks.Domain.Event;
+
 namespace BuildingBlocks.Outbox;
 
 public class OutboxMessage

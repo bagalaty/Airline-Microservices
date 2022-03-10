@@ -21,19 +21,22 @@ public class EfOutboxService : IOutboxService
     private readonly IPublishEndpoint _pushEndpoint;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IDbContext _dbContext;
+    private readonly IInboxService _inboxService;
 
     public EfOutboxService(
         IOptions<OutboxOptions> options,
         ILogger<EfOutboxService> logger,
         IPublishEndpoint pushEndpoint,
         IHttpContextAccessor httpContextAccessor,
-        IDbContext dbContext)
+        IDbContext dbContext,
+        IInboxService inboxService)
     {
         _options = options.Value;
         _logger = logger;
         _pushEndpoint = pushEndpoint;
         _httpContextAccessor = httpContextAccessor;
         _dbContext = dbContext;
+        _inboxService = inboxService;
     }
 
     public async Task<IEnumerable<OutboxMessage>> GetAllUnsentOutboxMessagesAsync(
@@ -73,6 +76,12 @@ public class EfOutboxService : IOutboxService
         if (!_options.Enabled)
         {
             _logger.LogWarning("Outbox is disabled, outgoing messages won't be saved");
+            return;
+        }
+
+        if (await _inboxService.ExistEventIdAsync(integrationEvent.EventId, cancellationToken))
+        {
+            _logger.LogWarning("Message with id: {0} was already processed!", integrationEvent.EventId);
             return;
         }
 
@@ -128,15 +137,18 @@ public class EfOutboxService : IOutboxService
                 var integrationEvent = data as IIntegrationEvent;
 
                 // Publish integration event
-                await _pushEndpoint.Publish((object)integrationEvent, context =>
+                if (integrationEvent != null)
                 {
-                    context.CorrelationId = outboxMessage.CorrelationId;
-                }, cancellationToken);
+                    await _pushEndpoint.Publish((object)integrationEvent, context =>
+                    {
+                        context.CorrelationId = outboxMessage.CorrelationId;
+                    }, cancellationToken);
 
-                _logger.LogTrace(
-                    "Publish a message: '{Name}' with ID: '{Id} (outbox)'",
-                    outboxMessage.Name,
-                    integrationEvent?.EventId);
+                    _logger.LogTrace(
+                        "Publish a message: '{Name}' with ID: '{Id} (outbox)'",
+                        outboxMessage.Name,
+                        integrationEvent?.EventId);
+                }
             }
 
             outboxMessage.MarkAsProcessed();

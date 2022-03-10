@@ -1,4 +1,4 @@
-namespace BuildingBlocks.Outbox;
+namespace BuildingBlocks.Domain.Event;
 
 [Flags]
 public enum EventType

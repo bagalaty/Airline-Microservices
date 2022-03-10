@@ -11,7 +11,6 @@ public interface IDbContext
         where TEntity : class;
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     IReadOnlyList<IDomainEvent> GetDomainEvents();
-
     Task BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);

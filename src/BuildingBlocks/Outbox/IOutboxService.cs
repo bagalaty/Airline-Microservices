@@ -1,4 +1,3 @@
-using BuildingBlocks.Domain;
 using BuildingBlocks.Domain.Event;
 
 namespace BuildingBlocks.Outbox;

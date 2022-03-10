@@ -1,3 +1,4 @@
+using BuildingBlocks.Domain.Event;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

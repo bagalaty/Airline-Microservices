@@ -48,7 +48,6 @@ public class EfTxBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TRe
         await _dbContextBase.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
         try
-
         {
             var response = await next();
 

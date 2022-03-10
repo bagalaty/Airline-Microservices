@@ -1,8 +1,13 @@
 using BuildingBlocks.Domain.Event;
 using BuildingBlocks.Outbox;
+using BuildingBlocks.Outbox.EF;
+using BuildingBlocks.Web;
+using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BuildingBlocks.Domain;
 
@@ -11,19 +16,29 @@ public sealed class EventProcessor : IEventProcessor
     private readonly IEventMapper _eventMapper;
     private readonly ILogger<IEventProcessor> _logger;
     private readonly IOutboxService _outboxService;
+    private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMediator _mediator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly OutboxOptions _outboxOptions;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public EventProcessor(IServiceScopeFactory serviceScopeFactory, IEventMapper eventMapper,
+    public EventProcessor(IServiceScopeFactory serviceScopeFactory,
+        IEventMapper eventMapper,
         ILogger<IEventProcessor> logger,
         IOutboxService outboxService,
-        IMediator mediator)
+        IPublishEndpoint publishEndpoint,
+        IMediator mediator,
+        IHttpContextAccessor httpContextAccessor,
+        IOptions<OutboxOptions> outboxOptions)
     {
         _serviceScopeFactory = serviceScopeFactory;
         _eventMapper = eventMapper;
         _logger = logger;
         _outboxService = outboxService;
+        _publishEndpoint = publishEndpoint;
         _mediator = mediator;
+        _httpContextAccessor = httpContextAccessor;
+        _outboxOptions = outboxOptions.Value;
     }
 
     public async Task ProcessAsync(IDomainEvent @event, CancellationToken cancellationToken = default) => await ProcessAsync(new[] { @event }, cancellationToken).ConfigureAwait(false);
@@ -49,7 +64,20 @@ public sealed class EventProcessor : IEventProcessor
     public async Task PublishAsync(IEnumerable<IIntegrationEvent> integrationEvents, CancellationToken cancellationToken)
     {
         foreach (var integrationEvent in integrationEvents)
-            await _outboxService.SaveAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
+        {
+            if (_outboxOptions.Enabled)
+            {
+                await _outboxService.SaveAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
+                continue;
+            }
+
+            await _publishEndpoint.Publish((object)integrationEvent, context =>
+            {
+                context.CorrelationId = new Guid(_httpContextAccessor.HttpContext.GetCorrelationId());
+            }, cancellationToken);
+
+            _logger.LogTrace("Publish a message with ID: {Id}", integrationEvent?.EventId);
+        }
     }
 
     private async Task<List<IIntegrationEvent>> HandleDomainEventsAsync(IEnumerable<IDomainEvent> events)
