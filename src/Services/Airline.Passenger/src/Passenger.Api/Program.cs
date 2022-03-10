@@ -5,6 +5,7 @@ using BuildingBlocks.Jwt;
 using BuildingBlocks.Logging;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
+using BuildingBlocks.OpenTelemetry;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Swagger;
 using BuildingBlocks.Utils;
@@ -12,7 +13,10 @@ using BuildingBlocks.Web;
 using Figgle;
 using FluentValidation;
 using Hellang.Middleware.ProblemDetails;
+using MassTransit.Logging;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Passenger;
 using Passenger.Data;
 using Passenger.Extensions;
@@ -42,6 +46,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IEventMapper, EventMapper>();
 
 builder.Services.AddCustomMassTransit(typeof(PassengerRoot).Assembly);
+builder.Services.AddCustomOpenTelemetry();
 
 SnowFlakIdGenerator.Configure(2);
 

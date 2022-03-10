@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Jaeger;
 using MassTransit.OpenTracing;
 using MassTransit.PrometheusIntegration;
+using OpenTelemetry.Contrib.Instrumentation.MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using OpenTracing.Util;
 
 
@@ -38,9 +41,6 @@ public static class Extensions
                     h.Username(rabbitMqOptions.UserName);
                     h.Password(rabbitMqOptions.Password);
                 });
-
-                configurator.PropagateOpenTracingContext();
-                configurator.UsePrometheusMetrics(serviceName: services.GetOptions<AppOptions>("AppOptions")?.Name ?? "Unknown");
 
                 var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
                     .Where(x => x.IsAssignableTo(typeof(IIntegrationEvent))
@@ -79,14 +79,6 @@ public static class Extensions
         });
 
         services.AddMassTransitHostedService();
-
-        // go to http://localhost:16686 for Jaeger
-        services.AddOpenTracing();
-
-        var tracer = new Tracer.Builder(services.GetOptions<AppOptions>("AppOptions")?.Name ?? "Unknown")
-            .WithSampler(new ConstSampler(true))
-            .Build();
-        GlobalTracer.Register(tracer);
 
         return services;
     }

@@ -4,6 +4,7 @@ using BuildingBlocks.EFCore;
 using BuildingBlocks.Logging;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
+using BuildingBlocks.OpenTelemetry;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Persistence;
 using BuildingBlocks.Swagger;
@@ -11,12 +12,16 @@ using BuildingBlocks.Utils;
 using BuildingBlocks.Web;
 using Figgle;
 using FluentValidation;
+using GreenPipes;
 using Hellang.Middleware.ProblemDetails;
 using Identity;
 using Identity.Data;
 using Identity.Extensions;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Prometheus;
 using Serilog;
 
@@ -43,12 +48,11 @@ builder.Services.AddCustomMediatR();
 builder.Services.AddValidatorsFromAssembly(typeof(IdentityRoot).Assembly);
 builder.Services.AddCustomProblemDetails();
 builder.Services.AddCustomMapster(typeof(IdentityRoot).Assembly);
-
-
 builder.Services.AddScoped<IDataSeeder, IdentityDataSeeder>();
 builder.Services.AddTransient<IEventMapper, EventMapper>();
 
 builder.Services.AddCustomMassTransit(typeof(IdentityRoot).Assembly);
+builder.Services.AddCustomOpenTelemetry();
 
 builder.Services.AddIdentityServer(env);
 

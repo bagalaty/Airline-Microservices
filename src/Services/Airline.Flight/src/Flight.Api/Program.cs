@@ -5,6 +5,7 @@ using BuildingBlocks.Jwt;
 using BuildingBlocks.Logging;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
+using BuildingBlocks.OpenTelemetry;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Persistence;
 using BuildingBlocks.Swagger;
@@ -46,6 +47,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IEventMapper, EventMapper>();
 
 builder.Services.AddCustomMassTransit(typeof(FlightRoot).Assembly);
+builder.Services.AddCustomOpenTelemetry();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 SnowFlakIdGenerator.Configure(1);

@@ -5,6 +5,7 @@ using BuildingBlocks.Jwt;
 using BuildingBlocks.Logging;
 using BuildingBlocks.Mapster;
 using BuildingBlocks.MassTransit;
+using BuildingBlocks.OpenTelemetry;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Swagger;
 using BuildingBlocks.Utils;
@@ -44,6 +45,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IEventMapper, EventMapper>();
 
 builder.Services.AddCustomMassTransit(typeof(ReservationRoot).Assembly);
+builder.Services.AddCustomOpenTelemetry();
 builder.Services.AddTransient<AuthHeaderHandler>();
 
 SnowFlakIdGenerator.Configure(3);
