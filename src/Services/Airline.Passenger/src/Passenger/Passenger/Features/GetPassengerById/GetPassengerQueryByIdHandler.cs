@@ -1,3 +1,4 @@
+using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using BuildingBlocks.Exception;
 using MapsterMapper;
@@ -22,6 +23,8 @@ public class GetPassengerQueryByIdHandler : IRequestHandler<GetPassengerQueryByI
 
     public async Task<PassengerResponseDto> Handle(GetPassengerQueryById query, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(query, nameof(query));
+
         var passenger =
             await _passengerDbContext.Passengers.SingleOrDefaultAsync(x => x.Id == query.Id, cancellationToken);
 

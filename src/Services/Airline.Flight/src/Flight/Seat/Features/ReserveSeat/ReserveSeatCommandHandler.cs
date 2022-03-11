@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using Flight.Data;
 using Flight.Seat.Dtos;
 using Flight.Seat.Exceptions;
@@ -22,6 +23,8 @@ public class ReserveSeatCommandHandler : IRequestHandler<ReserveSeatCommand, Sea
 
     public async Task<SeatResponseDto> Handle(ReserveSeatCommand command, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(command, nameof(command));
+
         var seat = await _flightDbContext.Seats.SingleOrDefaultAsync(x => x.SeatNumber == command.SeatNumber && x.FlightId == command.FlightId
             && !x.IsDeleted, cancellationToken);
 

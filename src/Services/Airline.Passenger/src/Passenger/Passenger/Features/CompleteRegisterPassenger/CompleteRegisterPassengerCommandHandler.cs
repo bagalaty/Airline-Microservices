@@ -1,3 +1,4 @@
+using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using MapsterMapper;
 using MediatR;
@@ -21,6 +22,8 @@ public class CompleteRegisterPassengerCommandHandler : IRequestHandler<CompleteR
 
     public async Task<PassengerResponseDto> Handle(CompleteRegisterPassengerCommand command, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(command, nameof(command));
+
         var passenger = await _passengerDbContext.Passengers.AsNoTracking().SingleOrDefaultAsync(
             x => x.PassportNumber == command.PassportNumber,
             cancellationToken);

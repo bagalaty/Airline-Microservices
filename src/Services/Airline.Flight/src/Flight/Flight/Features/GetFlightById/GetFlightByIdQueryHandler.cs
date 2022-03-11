@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using Flight.Data;
 using Flight.Flight.Dtos;
 using Flight.Flight.Exceptions;
@@ -22,6 +23,8 @@ public class GetFlightByIdQueryHandler : IRequestHandler<GetFlightByIdQuery, Fli
 
     public async Task<FlightResponseDto> Handle(GetFlightByIdQuery query, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(query, nameof(query));
+
         var flight =
             await _flightDbContext.Flights.SingleOrDefaultAsync(x => x.Id == query.Id && !x.IsDeleted, cancellationToken);
 

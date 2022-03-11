@@ -1,3 +1,4 @@
+using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using MapsterMapper;
 using MediatR;
@@ -35,6 +36,8 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
 
     public async Task<ReservationResponseDto> Handle(CreateReservationCommand command, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(command, nameof(command));
+
         try
         {
             var flight = await _flightServiceClient.GetById(command.FlightId);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using Flight.Data;
 using Flight.Flight.Dtos;
 using Flight.Flight.Exceptions;
@@ -22,9 +23,11 @@ public class GetAvailableFlightsQueryHandler : IRequestHandler<GetAvailableFligh
         _flightDbContext = flightDbContext;
     }
 
-    public async Task<IEnumerable<FlightResponseDto>> Handle(GetAvailableFlightsQuery request,
+    public async Task<IEnumerable<FlightResponseDto>> Handle(GetAvailableFlightsQuery query,
         CancellationToken cancellationToken)
     {
+        Guard.Against.Null(query, nameof(query));
+
         var flight = await _flightDbContext.Flights.Where(x => !x.IsDeleted).ToListAsync(cancellationToken);
 
         if (!flight.Any())

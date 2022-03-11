@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using Flight.Airport.Dtos;
 using Flight.Airport.Exceptions;
@@ -23,6 +24,8 @@ public class CreateAirportCommandHandler : IRequestHandler<CreateAirportCommand,
 
     public async Task<AirportResponseDto> Handle(CreateAirportCommand command, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(command, nameof(command));
+
         var airport = await _flightDbContext.Airports.SingleOrDefaultAsync(x => x.Code == command.Code, cancellationToken);
 
         if (airport is not null)

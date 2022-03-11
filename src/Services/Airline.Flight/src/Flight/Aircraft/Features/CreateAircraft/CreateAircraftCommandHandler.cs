@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using Flight.Aircraft.Dtos;
 using Flight.Aircraft.Exceptions;
@@ -26,6 +27,8 @@ public class CreateAircraftCommandHandler : IRequestHandler<CreateAircraftComman
 
     public async Task<AircraftResponseDto> Handle(CreateAircraftCommand command, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(command, nameof(command));
+
         var aircraft = await _flightDbContext.Aircraft.SingleOrDefaultAsync(x => x.Model == command.Model, cancellationToken);
 
         if (aircraft is not null)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using Flight.Data;
 using Flight.Seat.Dtos;
 using Flight.Seat.Exceptions;
@@ -25,6 +26,8 @@ public class GetAvailableSeatsQueryHandler : IRequestHandler<GetAvailableSeatsQu
 
     public async Task<IEnumerable<SeatResponseDto>> Handle(GetAvailableSeatsQuery query, CancellationToken cancellationToken)
     {
+        Guard.Against.Null(query, nameof(query));
+
         var seats = await _flightDbContext.Seats.Where(x => x.FlightId == query.FlightId && !x.IsDeleted).ToListAsync(cancellationToken);
 
         if (!seats.Any())

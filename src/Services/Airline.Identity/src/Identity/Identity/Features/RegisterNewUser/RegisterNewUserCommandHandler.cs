@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using BuildingBlocks.Domain;
 using BuildingBlocks.EventBus.Messages;
 using BuildingBlocks.Outbox;
@@ -34,6 +35,8 @@ public class RegisterNewUserCommandHandler : IRequestHandler<RegisterNewUserComm
     public async Task<RegisterNewUserResponseDto> Handle(RegisterNewUserCommand command,
         CancellationToken cancellationToken)
     {
+        Guard.Against.Null(command, nameof(command));
+
         var applicationUser = new ApplicationUser
         {
             FirstName = command.FirstName,
